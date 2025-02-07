@@ -52,17 +52,34 @@ curl http://localhost:8080/logs \
 -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-### Get weekly logs
+### Get logs by period
 
 ```bash
-curl "http://localhost:8080/logs/filter?period=week" \
+# Get this week's logs
+curl "http://localhost:8080/logs/filter?period=this-week" \
+-H "Authorization: Bearer YOUR_TOKEN"
+
+# Get last week's logs
+curl "http://localhost:8080/logs/filter?period=last-week" \
+-H "Authorization: Bearer YOUR_TOKEN"
+
+# Get this month's logs
+curl "http://localhost:8080/logs/filter?period=this-month" \
+-H "Authorization: Bearer YOUR_TOKEN"
+
+# Get last month's logs
+curl "http://localhost:8080/logs/filter?period=last-month" \
+-H "Authorization: Bearer YOUR_TOKEN"
+
+# Get custom period logs
+curl "http://localhost:8080/logs/filter?period=custom&startDate=2024-01-01&endDate=2024-01-31" \
 -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-### Get monthly logs
+### Get logs for specific month
 
 ```bash
-curl "http://localhost:8080/logs/filter?period=month" \
+curl "http://localhost:8080/logs/filter?month=1&year=2024" \
 -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

@@ -1,13 +1,34 @@
-import { Router, RequestHandler } from 'express';
+import { Router, Request, Response, NextFunction, RequestHandler } from 'express';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../utils/auth';
 import prisma from '../lib/prisma';
 import { authLimiter } from '../middleware/rateLimiter';
 import { validatePassword } from '../middleware/validatePassword';
+import { body, validationResult } from 'express-validator';
 
 const router = Router();
 
-const registerHandler: RequestHandler = async (req, res) => {
+// Add validation middleware
+const validateRegistration = [
+  body('email').isEmail().withMessage('Invalid email format'),
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+  body('name').notEmpty().withMessage('Name is required'),
+];
+
+const validateRegistrationHandler: RequestHandler = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ error: errors.array()[0].msg });
+    return;
+  }
+  next();
+};
+
+const registerHandler: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { email, password, name } = req.body;
     const existingUser = await prisma.user.findUnique({
@@ -39,7 +60,7 @@ const registerHandler: RequestHandler = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    next(error);
   }
 };
 
@@ -76,7 +97,7 @@ const loginHandler: RequestHandler = async (req, res) => {
   }
 };
 
-router.post('/register', validatePassword, registerHandler);
+router.post('/register', validateRegistration, validateRegistrationHandler, registerHandler);
 router.post('/login', authLimiter, loginHandler);
 
 export default router; 
