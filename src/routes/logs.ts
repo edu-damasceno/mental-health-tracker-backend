@@ -24,7 +24,11 @@ const validateLog = [
   body('moodLevel').isInt({ min: 1, max: 10 }).withMessage('Mood level must be between 1 and 10'),
   body('anxietyLevel').isInt({ min: 1, max: 10 }).withMessage('Anxiety level must be between 1 and 10'),
   body('sleepHours').isFloat({ min: 0, max: 24 }).withMessage('Sleep hours must be between 0 and 24'),
+  body('sleepQuality').isString().notEmpty().withMessage('Sleep quality must be a non-empty string'),
+  body('physicalActivity').isString().notEmpty().withMessage('Physical activity must be a non-empty string'),
+  body('socialInteractions').isString().notEmpty().withMessage('Social interactions must be a non-empty string'),
   body('stressLevel').isInt({ min: 1, max: 10 }).withMessage('Stress level must be between 1 and 10'),
+  body('symptoms').isString().notEmpty().withMessage('Symptoms must be a non-empty string')
 ];
 
 const validatePeriod = [
@@ -35,9 +39,40 @@ const validatePeriod = [
     'last-month',
     'custom'
   ]).withMessage('Invalid period'),
-  query('startDate').optional().isISO8601().withMessage('Invalid start date'),
-  query('endDate').optional().isISO8601().withMessage('Invalid end date')
+  query('startDate').custom((value, { req }) => {
+    const query = req.query as { period?: string };
+    if (query.period === 'custom' && !value) {
+      throw new Error('Start date is required for custom period');
+    }
+    if (value && !isISO8601Date(value)) {
+      throw new Error('Invalid start date format');
+    }
+    return true;
+  }),
+  query('endDate').custom((value, { req }) => {
+    const query = req.query as { 
+      period?: string;
+      startDate?: string;
+    };
+    
+    if (query.period === 'custom' && !value) {
+      throw new Error('End date is required for custom period');
+    }
+    if (value && !isISO8601Date(value)) {
+      throw new Error('Invalid end date format');
+    }
+    if (query.startDate && value && new Date(value) < new Date(query.startDate)) {
+      throw new Error('End date must be after start date');
+    }
+    return true;
+  })
 ];
+
+// Helper function to validate ISO 8601 dates
+function isISO8601Date(value: string): boolean {
+  const date = new Date(value);
+  return date instanceof Date && !isNaN(date.getTime());
+}
 
 // Validation handlers
 const validateLogHandler: RequestHandler = (req, res, next) => {

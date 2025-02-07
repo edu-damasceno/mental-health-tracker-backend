@@ -277,4 +277,50 @@ describe('Logs Endpoints', () => {
     expect(res.body.some((log: any) => log.symptoms === 'January log')).toBe(true);
     expect(res.body.some((log: any) => log.symptoms === 'February log')).toBe(false);
   });
+
+  it('should handle invalid date format in custom period', async () => {
+    const res = await request(app)
+      .get('/logs/filter?period=custom&startDate=invalid-date&endDate=2024-01-31')
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('should handle missing dates in custom period', async () => {
+    const res = await request(app)
+      .get('/logs/filter?period=custom')
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('should handle end date before start date', async () => {
+    const res = await request(app)
+      .get('/logs/filter?period=custom&startDate=2024-02-01&endDate=2024-01-01')
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('should handle invalid log data types', async () => {
+    const res = await request(app)
+      .post('/logs')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        moodLevel: 'invalid', // should be number
+        anxietyLevel: 2,
+        sleepHours: 'invalid', // should be number
+        sleepQuality: 123, // should be string
+        physicalActivity: [],  // should be string
+        socialInteractions: {},  // should be string
+        stressLevel: 'high',  // should be number
+        symptoms: null  // should be string
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('error');
+  });
 }); 

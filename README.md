@@ -1,55 +1,67 @@
 # Mental Health Tracker API
 
-A RESTful API for tracking mental health metrics with real-time updates.
+A RESTful API for tracking daily mental health metrics with real-time updates via WebSocket.
 
 ## Features
 
-- User authentication with JWT
-- Daily mental health logging
-- Weekly and monthly data filtering
-- Real-time updates via WebSocket
-- Security features (rate limiting, password validation)
+- 🔐 Secure authentication with JWT
+- 📊 Daily mental health logging
+  - Mood levels
+  - Anxiety levels
+  - Sleep quality
+  - Physical activity
+  - Social interactions
+  - Stress levels
+  - Depression and Anxiety Symptoms
+- 📅 Flexible date filtering
+  - This week/Last week
+  - This month/Last month
+  - Custom date ranges
+- 🔄 Real-time updates via WebSocket
+- 🛡️ Security features
+  - Rate limiting
+  - Password strength validation
+  - HTTP security headers
+- ✅ Comprehensive test suite (19 passing tests)
 
-## API Endpoints
+## Tech Stack
 
-### Authentication
+- Node.js & TypeScript
+- Express.js
+- Prisma (ORM)
+- SQLite (Database)
+- Jest & Supertest (Testing)
+- WebSocket (Real-time updates)
 
-- POST `/auth/register` - Register new user
-- POST `/auth/login` - Login user
+## Getting Started
 
-### Logs
+1. Clone the repository:
 
-- POST `/logs` - Create new daily log
-- GET `/logs` - Get all logs for user
-- GET `/logs/filter?period=week` - Get weekly logs
-- GET `/logs/filter?period=month` - Get monthly logs
+```bash
+git clone https://github.com/YOUR_USERNAME/mental-health-tracker-backend.git
+cd mental-health-tracker-backend
+```
 
-## WebSocket
-
-Real-time updates are available through WebSocket connection at `ws://localhost:8080`
-
-## Setup
-
-1. Install dependencies:
+2. Install dependencies:
 
 ```bash
 npm install
 ```
 
-2. Set up environment variables:
+3. Set up environment variables:
 
 ```bash
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="your-secret-key"
+cp .env.example .env
+# Edit .env with your values
 ```
 
-3. Run migrations:
+4. Set up the database:
 
 ```bash
 npx prisma migrate dev
 ```
 
-4. Start the server:
+5. Run the development server:
 
 ```bash
 npm run dev
@@ -57,8 +69,56 @@ npm run dev
 
 ## Testing
 
-Example curl commands for testing endpoints are available in the `docs` folder.
+Run the test suite:
+
+```bash
+npm test
+```
+
+## API Documentation
+
+See [docs/api-examples.md](docs/api-examples.md) for detailed API documentation.
+
+### Key Endpoints
+
+- Authentication
+
+  - POST `/auth/register` - Register new user
+  - POST `/auth/login` - Login user
+
+- Logs
+  - POST `/logs` - Create new log
+  - GET `/logs` - Get all logs
+  - GET `/logs/filter` - Get filtered logs
+  - PUT `/logs/:id` - Update log
+  - DELETE `/logs/:id` - Delete log
+
+### WebSocket
+
+Connect to `ws://localhost:8080` for real-time updates:
+
+- NEW_LOG events
+- UPDATE_LOG events
+- DELETE_LOG events
+
+## Environment Variables
+
+The following environment variables can be configured:
+
+| Variable                | Description                   | Default               |
+| ----------------------- | ----------------------------- | --------------------- |
+| PORT                    | Express server port           | 8080                  |
+| NODE_ENV                | Environment mode              | development           |
+| DATABASE_URL            | SQLite database URL           | file:./dev.db         |
+| JWT_SECRET              | JWT signing secret (required) | -                     |
+| JWT_EXPIRES_IN          | JWT expiration time           | 24h                   |
+| RATE_LIMIT_WINDOW_MS    | Rate limit window             | 900000                |
+| RATE_LIMIT_MAX_REQUESTS | Max requests per window       | 100                   |
+| ALLOWED_ORIGINS         | CORS allowed origins          | http://localhost:3000 |
+| WS_PORT                 | WebSocket server port         | 8080                  |
+
+Copy `.env.example` to `.env` and adjust the values as needed.
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+MIT

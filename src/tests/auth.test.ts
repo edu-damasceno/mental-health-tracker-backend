@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { app } from '../server';
 import prisma from '../lib/prisma';
+import jwt from 'jsonwebtoken';
 
 describe('Auth Endpoints', () => {
   beforeAll(async () => {
@@ -79,6 +80,63 @@ describe('Auth Endpoints', () => {
         email: 'nonexistent@example.com',
         password: 'Password123'
       });
+
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('should handle invalid JWT token format', async () => {
+    const res = await request(app)
+      .get('/logs')
+      .set('Authorization', 'Bearer invalid.token.format');
+
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('should handle missing Authorization header', async () => {
+    const res = await request(app)
+      .get('/logs');
+
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('should handle malformed Authorization header', async () => {
+    const res = await request(app)
+      .get('/logs')
+      .set('Authorization', 'InvalidFormat Token');
+
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('should handle expired JWT token', async () => {
+    // Create an expired token
+    const expiredToken = jwt.sign(
+      { userId: 'test-user' },
+      process.env.JWT_SECRET || 'test-secret',
+      { expiresIn: '0s' }
+    );
+
+    const res = await request(app)
+      .get('/logs')
+      .set('Authorization', `Bearer ${expiredToken}`);
+
+    expect(res.status).toBe(401);
+    expect(res.body).toHaveProperty('error');
+  });
+
+  it('should handle token without userId', async () => {
+    // Create a token without userId
+    const invalidToken = jwt.sign(
+      { someOtherField: 'value' },
+      process.env.JWT_SECRET || 'test-secret'
+    );
+
+    const res = await request(app)
+      .get('/logs')
+      .set('Authorization', `Bearer ${invalidToken}`);
 
     expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('error');

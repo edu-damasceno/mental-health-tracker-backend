@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1738954340477" clover="3.2.0">
+  <project timestamp="1738954340477" name="All files">
+    <metrics statements="255" coveredstatements="216" conditionals="88" coveredconditionals="65" methods="35" coveredmethods="30" elements="378" coveredelements="311" complexity="0" loc="255" ncloc="255" packages="6" files="8" classes="8"/>
+    <package name="src">
+      <metrics statements="30" coveredstatements="29" conditionals="11" coveredconditionals="7" methods="8" coveredmethods="8"/>
+      <file name="server.ts" path="/home/eduardo/Documentos/projetos/LunaJoy/mental-health-tracker-backend/src/server.ts">
+        <metrics statements="30" coveredstatements="29" conditionals="11" coveredconditionals="7" methods="8" coveredmethods="8"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="26" count="2" type="stmt"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="32" count="2" type="stmt"/>
+        <line num="33" count="2" type="stmt"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="35" count="2" type="stmt"/>
+        <line num="36" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="39" count="2" type="stmt"/>
+        <line num="40" count="2" type="stmt"/>
+        <line num="45" count="2" type="stmt"/>
+        <line num="46" count="2" type="stmt"/>
+        <line num="47" count="2" type="cond" truecount="3" falsecount="1"/>
+        <line num="48" count="2" type="cond" truecount="3" falsecount="1"/>
+        <line num="49" count="2" type="stmt"/>
+        <line num="58" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="59" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.config">
+      <metrics statements="8" coveredstatements="7" conditionals="27" coveredconditionals="16" methods="1" coveredmethods="1"/>
+      <file name="env.ts" path="/home/eduardo/Documentos/projetos/LunaJoy/mental-health-tracker-backend/src/config/env.ts">
+        <metrics statements="8" coveredstatements="7" conditionals="27" coveredconditionals="16" methods="1" coveredmethods="1"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="37" count="2" type="stmt"/>
+        <line num="38" count="4" type="stmt"/>
+        <line num="40" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="41" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.lib">
+      <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+      <file name="prisma.ts" path="/home/eduardo/Documentos/projetos/LunaJoy/mental-health-tracker-backend/src/lib/prisma.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.middleware">
+      <metrics statements="27" coveredstatements="26" conditionals="11" coveredconditionals="11" methods="1" coveredmethods="1"/>
+      <file name="authMiddleware.ts" path="/home/eduardo/Documentos/projetos/LunaJoy/mental-health-tracker-backend/src/middleware/authMiddleware.ts">
+        <metrics statements="25" coveredstatements="24" conditionals="11" coveredconditionals="11" methods="1" coveredmethods="1"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="19" count="27" type="stmt"/>
+        <line num="20" count="27" type="stmt"/>
+        <line num="21" count="27" type="cond" truecount="1" falsecount="0"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="26" count="25" type="stmt"/>
+        <line num="27" count="25" type="cond" truecount="3" falsecount="0"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="29" count="1" type="stmt"/>
+        <line num="32" count="24" type="stmt"/>
+        <line num="33" count="21" type="cond" truecount="4" falsecount="0"/>
+        <line num="34" count="1" type="stmt"/>
+        <line num="35" count="1" type="stmt"/>
+        <line num="38" count="20" type="stmt"/>
+        <line num="39" count="20" type="stmt"/>
+        <line num="41" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="42" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="43" count="2" type="stmt"/>
+        <line num="44" count="2" type="stmt"/>
+        <line num="46" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="48" count="1" type="stmt"/>
+        <line num="51" count="0" type="stmt"/>
+      </file>
+      <file name="rateLimiter.ts" path="/home/eduardo/Documentos/projetos/LunaJoy/mental-health-tracker-backend/src/middleware/rateLimiter.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.routes">
+      <metrics statements="180" coveredstatements="144" conditionals="39" coveredconditionals="31" methods="23" coveredmethods="18"/>
+      <file name="auth.ts" path="/home/eduardo/Documentos/projetos/LunaJoy/mental-health-tracker-backend/src/routes/auth.ts">
+        <metrics statements="46" coveredstatements="40" conditionals="4" coveredconditionals="3" methods="5" coveredmethods="5"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="19" count="5" type="stmt"/>
+        <line num="20" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="24" count="3" type="stmt"/>
+        <line num="27" count="2" type="stmt"/>
+        <line num="31" count="3" type="stmt"/>
+        <line num="32" count="3" type="stmt"/>
+        <line num="33" count="3" type="stmt"/>
+        <line num="34" count="3" type="stmt"/>
+        <line num="38" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="43" count="3" type="stmt"/>
+        <line num="44" count="3" type="stmt"/>
+        <line num="52" count="3" type="stmt"/>
+        <line num="53" count="3" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="67" count="3" type="stmt"/>
+        <line num="68" count="3" type="stmt"/>
+        <line num="69" count="3" type="stmt"/>
+        <line num="70" count="3" type="stmt"/>
+        <line num="74" count="3" type="cond" truecount="1" falsecount="0"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="76" count="1" type="stmt"/>
+        <line num="79" count="2" type="stmt"/>
+        <line num="80" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="81" count="1" type="stmt"/>
+        <line num="82" count="1" type="stmt"/>
+        <line num="85" count="1" type="stmt"/>
+        <line num="86" count="1" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="96" count="0" type="stmt"/>
+        <line num="100" count="2" type="stmt"/>
+        <line num="101" count="2" type="stmt"/>
+        <line num="103" count="2" type="stmt"/>
+      </file>
+      <file name="logs.ts" path="/home/eduardo/Documentos/projetos/LunaJoy/mental-health-tracker-backend/src/routes/logs.ts">
+        <metrics statements="134" coveredstatements="104" conditionals="35" coveredconditionals="28" methods="18" coveredmethods="13"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="3" count="2" type="stmt"/>
+        <line num="5" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="34" count="2" type="stmt"/>
+        <line num="43" count="9" type="stmt"/>
+        <line num="44" count="9" type="cond" truecount="3" falsecount="0"/>
+        <line num="45" count="1" type="stmt"/>
+        <line num="47" count="8" type="cond" truecount="3" falsecount="0"/>
+        <line num="48" count="2" type="stmt"/>
+        <line num="50" count="6" type="stmt"/>
+        <line num="53" count="9" type="stmt"/>
+        <line num="58" count="9" type="cond" truecount="3" falsecount="0"/>
+        <line num="59" count="2" type="stmt"/>
+        <line num="61" count="7" type="cond" truecount="2" falsecount="1"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="64" count="7" type="cond" truecount="4" falsecount="0"/>
+        <line num="65" count="1" type="stmt"/>
+        <line num="67" count="6" type="stmt"/>
+        <line num="73" count="9" type="stmt"/>
+        <line num="74" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="78" count="2" type="stmt"/>
+        <line num="79" count="10" type="stmt"/>
+        <line num="80" count="10" type="cond" truecount="1" falsecount="0"/>
+        <line num="81" count="2" type="stmt"/>
+        <line num="82" count="2" type="stmt"/>
+        <line num="84" count="8" type="stmt"/>
+        <line num="87" count="2" type="stmt"/>
+        <line num="88" count="9" type="stmt"/>
+        <line num="89" count="9" type="cond" truecount="1" falsecount="0"/>
+        <line num="90" count="5" type="stmt"/>
+        <line num="91" count="5" type="stmt"/>
+        <line num="93" count="4" type="stmt"/>
+        <line num="96" count="6" type="stmt"/>
+        <line num="97" count="6" type="stmt"/>
+        <line num="98" count="6" type="stmt"/>
+        <line num="99" count="6" type="stmt"/>
+        <line num="101" count="6" type="stmt"/>
+        <line num="117" count="6" type="stmt"/>
+        <line num="118" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="119" count="0" type="stmt"/>
+        <line num="126" count="6" type="stmt"/>
+        <line num="128" count="0" type="stmt"/>
+        <line num="132" count="2" type="stmt"/>
+        <line num="133" count="0" type="stmt"/>
+        <line num="134" count="0" type="stmt"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="143" count="0" type="stmt"/>
+        <line num="148" count="4" type="stmt"/>
+        <line num="149" count="4" type="stmt"/>
+        <line num="150" count="4" type="stmt"/>
+        <line num="151" count="4" type="stmt"/>
+        <line num="153" count="4" type="stmt"/>
+        <line num="154" count="4" type="stmt"/>
+        <line num="156" count="4" type="cond" truecount="3" falsecount="2"/>
+        <line num="159" count="1" type="stmt"/>
+        <line num="160" count="1" type="stmt"/>
+        <line num="161" count="1" type="stmt"/>
+        <line num="164" count="1" type="stmt"/>
+        <line num="165" count="1" type="stmt"/>
+        <line num="166" count="1" type="stmt"/>
+        <line num="168" count="1" type="stmt"/>
+        <line num="169" count="1" type="stmt"/>
+        <line num="173" count="1" type="stmt"/>
+        <line num="174" count="1" type="stmt"/>
+        <line num="175" count="1" type="stmt"/>
+        <line num="178" count="1" type="stmt"/>
+        <line num="179" count="1" type="stmt"/>
+        <line num="180" count="1" type="stmt"/>
+        <line num="182" count="1" type="stmt"/>
+        <line num="183" count="1" type="stmt"/>
+        <line num="187" count="0" type="stmt"/>
+        <line num="188" count="0" type="stmt"/>
+        <line num="191" count="0" type="stmt"/>
+        <line num="192" count="0" type="stmt"/>
+        <line num="194" count="0" type="stmt"/>
+        <line num="195" count="0" type="stmt"/>
+        <line num="199" count="0" type="stmt"/>
+        <line num="200" count="0" type="stmt"/>
+        <line num="203" count="0" type="stmt"/>
+        <line num="204" count="0" type="stmt"/>
+        <line num="206" count="0" type="stmt"/>
+        <line num="207" count="0" type="stmt"/>
+        <line num="210" count="2" type="cond" truecount="3" falsecount="0"/>
+        <line num="211" count="2" type="stmt"/>
+        <line num="212" count="2" type="stmt"/>
+        <line num="213" count="2" type="stmt"/>
+        <line num="214" count="2" type="stmt"/>
+        <line num="216" count="2" type="stmt"/>
+        <line num="221" count="2" type="stmt"/>
+        <line num="225" count="4" type="stmt"/>
+        <line num="233" count="4" type="stmt"/>
+        <line num="235" count="0" type="stmt"/>
+        <line num="240" count="2" type="stmt"/>
+        <line num="241" count="2" type="stmt"/>
+        <line num="242" count="2" type="stmt"/>
+        <line num="243" count="2" type="stmt"/>
+        <line num="244" count="2" type="stmt"/>
+        <line num="247" count="2" type="stmt"/>
+        <line num="254" count="2" type="cond" truecount="1" falsecount="0"/>
+        <line num="255" count="1" type="stmt"/>
+        <line num="256" count="1" type="stmt"/>
+        <line num="259" count="1" type="stmt"/>
+        <line num="274" count="1" type="stmt"/>
+        <line num="275" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="276" count="0" type="stmt"/>
+        <line num="283" count="1" type="stmt"/>
+        <line num="285" count="0" type="stmt"/>
+        <line num="290" count="2" type="stmt"/>
+        <line num="291" count="1" type="stmt"/>
+        <line num="292" count="1" type="stmt"/>
+        <line num="293" count="1" type="stmt"/>
+        <line num="296" count="1" type="stmt"/>
+        <line num="303" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="304" count="0" type="stmt"/>
+        <line num="305" count="0" type="stmt"/>
+        <line num="308" count="1" type="stmt"/>
+        <line num="313" count="1" type="stmt"/>
+        <line num="314" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="315" count="0" type="stmt"/>
+        <line num="322" count="1" type="stmt"/>
+        <line num="324" count="0" type="stmt"/>
+        <line num="329" count="2" type="stmt"/>
+        <line num="331" count="2" type="stmt"/>
+        <line num="332" count="2" type="stmt"/>
+        <line num="333" count="2" type="stmt"/>
+        <line num="334" count="2" type="stmt"/>
+        <line num="335" count="2" type="stmt"/>
+        <line num="337" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.utils">
+      <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+      <file name="auth.ts" path="/home/eduardo/Documentos/projetos/LunaJoy/mental-health-tracker-backend/src/utils/auth.ts">
+        <metrics statements="7" coveredstatements="7" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+        <line num="1" count="2" type="stmt"/>
+        <line num="2" count="2" type="stmt"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="6" count="2" type="stmt"/>
+        <line num="7" count="4" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="24" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
