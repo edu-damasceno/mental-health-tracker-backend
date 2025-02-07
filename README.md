@@ -5,6 +5,9 @@ A RESTful API for tracking daily mental health metrics with real-time updates vi
 ## Features
 
 - 🔐 Secure authentication with JWT
+  - Token validation and expiry handling
+  - Proper error messages for auth failures
+  - Type-safe JWT payload handling
 - 📊 Daily mental health logging
   - Mood levels
   - Anxiety levels
@@ -16,13 +19,21 @@ A RESTful API for tracking daily mental health metrics with real-time updates vi
 - 📅 Flexible date filtering
   - This week/Last week
   - This month/Last month
-  - Custom date ranges
+  - Custom date ranges with validation
 - 🔄 Real-time updates via WebSocket
 - 🛡️ Security features
   - Rate limiting
   - Password strength validation
   - HTTP security headers
-- ✅ Comprehensive test suite (19 passing tests)
+  - Type-safe request handling
+- ✅ Comprehensive test suite
+  - 28 passing tests
+  - 85%+ code coverage
+  - Authentication tests
+  - CRUD operation tests
+  - Date filtering tests
+  - Input validation tests
+  - Error handling tests
 
 ## Tech Stack
 
@@ -74,6 +85,23 @@ Run the test suite:
 ```bash
 npm test
 ```
+
+Current coverage:
+
+- Overall: 85.07%
+- Server: 96.96%
+- Auth: 87.23%
+- Logs: 77.69%
+- Middleware: 96.42%
+
+Tests include:
+
+- Authentication flows
+- CRUD operations
+- Date filtering
+- Input validation
+- Error handling
+- Real-time updates
 
 ## API Documentation
 
