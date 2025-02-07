@@ -66,6 +66,31 @@ curl "http://localhost:8080/logs/filter?period=month" \
 -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
+### Update a log
+
+```bash
+curl -X PUT http://localhost:8080/logs/LOG_ID \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer YOUR_TOKEN" \
+-d '{
+  "moodLevel": 3,
+  "anxietyLevel": 2,
+  "sleepHours": 8,
+  "sleepQuality": "Excellent",
+  "physicalActivity": "1 hour gym session",
+  "socialInteractions": "Family dinner",
+  "stressLevel": 2,
+  "symptoms": "Feeling much better after exercise"
+}'
+```
+
+### Delete a log
+
+```bash
+curl -X DELETE http://localhost:8080/logs/LOG_ID \
+-H "Authorization: Bearer YOUR_TOKEN"
+```
+
 ## WebSocket Testing
 
 You can test WebSocket connections using the provided test script:

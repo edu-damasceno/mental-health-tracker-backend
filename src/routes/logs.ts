@@ -106,9 +106,100 @@ router.get('/filter', authenticateToken, async (req: Request, res: Response) => 
   res.json(logs);
 });
 
+// Update a log
+const updateLogHandler: RequestHandler = async (req, res, next): Promise<void> => {
+  try {
+    const userId = (req as AuthRequest).userId;
+    const logId = req.params.id;
+    const body = req.body as CreateLogBody;
+
+    // First verify the log belongs to the user
+    const existingLog = await prisma.dailyLog.findFirst({
+      where: {
+        id: logId,
+        userId
+      }
+    });
+
+    if (!existingLog) {
+      res.status(404).json({ error: 'Log not found or unauthorized' });
+      return;
+    }
+
+    const updatedLog = await prisma.dailyLog.update({
+      where: { id: logId },
+      data: {
+        moodLevel: body.moodLevel,
+        anxietyLevel: body.anxietyLevel,
+        sleepHours: body.sleepHours,
+        sleepQuality: body.sleepQuality,
+        physicalActivity: body.physicalActivity,
+        socialInteractions: body.socialInteractions,
+        stressLevel: body.stressLevel,
+        symptoms: body.symptoms
+      }
+    });
+
+    // Broadcast the update
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: 'UPDATE_LOG',
+          data: updatedLog
+        }));
+      }
+    });
+
+    res.json(updatedLog);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Delete a log
+const deleteLogHandler: RequestHandler = async (req, res, next): Promise<void> => {
+  try {
+    const userId = (req as AuthRequest).userId;
+    const logId = req.params.id;
+
+    // First verify the log belongs to the user
+    const existingLog = await prisma.dailyLog.findFirst({
+      where: {
+        id: logId,
+        userId
+      }
+    });
+
+    if (!existingLog) {
+      res.status(404).json({ error: 'Log not found or unauthorized' });
+      return;
+    }
+
+    await prisma.dailyLog.delete({
+      where: { id: logId }
+    });
+
+    // Broadcast the deletion
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: 'DELETE_LOG',
+          data: { id: logId }
+        }));
+      }
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Apply middleware and handlers
 router.use(authenticateToken);
 router.post('/', createLogHandler);
 router.get('/', getLogsHandler);
+router.put('/:id', updateLogHandler);
+router.delete('/:id', deleteLogHandler);
 
 export default router; 
