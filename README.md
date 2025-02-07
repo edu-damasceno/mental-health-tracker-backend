@@ -1,88 +1,63 @@
-# Mental Health Tracker Backend
+# Mental Health Tracker API
 
-A secure backend service for the Mental Health Tracker application, built with Node.js, Express, and Prisma.
+A RESTful API for tracking mental health metrics with real-time updates.
 
 ## Features
 
-- User Authentication
-  - Register with email and password
-  - Login with JWT token generation
-  - Secure password hashing with bcrypt
-
-## Tech Stack
-
-- Node.js & Express
-- TypeScript
-- Prisma (ORM)
-- SQLite
-- JWT for authentication
-- bcrypt for password hashing
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v14 or higher)
-- npm
-
-### Installation
-
-1. Clone the repository
-
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/mental-health-tracker-backend.git
-   cd mental-health-tracker-backend
-   ```
-
-2. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-3. Create a .env file in the root directory
-
-   ```env
-   PORT=8080
-   JWT_SECRET=your_jwt_secret_here
-   DATABASE_URL="file:./dev.db"
-   ```
-
-4. Set up the database
-
-   ```bash
-   npx prisma migrate dev
-   ```
-
-5. Start the development server
-   ```bash
-   npm run dev
-   ```
+- User authentication with JWT
+- Daily mental health logging
+- Weekly and monthly data filtering
+- Real-time updates via WebSocket
+- Security features (rate limiting, password validation)
 
 ## API Endpoints
 
 ### Authentication
 
-#### Register a new user
+- POST `/auth/register` - Register new user
+- POST `/auth/login` - Login user
 
-http
-POST /auth/register
-Content-Type: application/json
-{
-"email": "user@example.com",
-"password": "securepassword",
-"name": "John Doe"
-}
+### Logs
 
-#### Login
+- POST `/logs` - Create new daily log
+- GET `/logs` - Get all logs for user
+- GET `/logs/filter?period=week` - Get weekly logs
+- GET `/logs/filter?period=month` - Get monthly logs
 
-http
-POST /auth/login
-Content-Type: application/json
-{
-"email": "user@example.com",
-"password": "securepassword"
-}
+## WebSocket
+
+Real-time updates are available through WebSocket connection at `ws://localhost:8080`
+
+## Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Set up environment variables:
+
+```bash
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="your-secret-key"
+```
+
+3. Run migrations:
+
+```bash
+npx prisma migrate dev
+```
+
+4. Start the server:
+
+```bash
+npm run dev
+```
+
+## Testing
+
+Example curl commands for testing endpoints are available in the `docs` folder.
 
 ## License
 

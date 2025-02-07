@@ -8,9 +8,29 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String     @id @default(uuid())
+  email     String     @unique
   password  String
   name      String?
-  createdAt DateTime @default(now())
+  createdAt DateTime   @default(now())
+  dailyLogs DailyLog[]
+}
+
+model DailyLog {
+  id        String   @id @default(uuid())
+  userId    String
+  date      DateTime @default(now())
+  
+  // Core metrics from requirements
+  moodLevel          Int      // Scale: 1-5 (very sad to very happy)
+  anxietyLevel       Int      // Scale: 1-5
+  sleepHours         Int
+  sleepQuality       String   // Poor, Fair, Good, Excellent
+  physicalActivity   String   // Type and duration
+  socialInteractions String   // Frequency/description
+  stressLevel        Int      // Scale: 1-5
+  symptoms           String   // Description of depression/anxiety symptoms
+  
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
 } 
