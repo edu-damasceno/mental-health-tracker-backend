@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 
@@ -9,6 +10,7 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 // Middleware
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 

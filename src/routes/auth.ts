@@ -2,6 +2,8 @@ import { Router, RequestHandler } from 'express';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../utils/auth';
 import prisma from '../lib/prisma';
+import { authLimiter } from '../middleware/rateLimiter';
+import { validatePassword } from '../middleware/validatePassword';
 
 const router = Router();
 
@@ -74,7 +76,7 @@ const loginHandler: RequestHandler = async (req, res) => {
   }
 };
 
-router.post('/register', registerHandler);
-router.post('/login', loginHandler);
+router.post('/register', validatePassword, registerHandler);
+router.post('/login', authLimiter, loginHandler);
 
 export default router; 
