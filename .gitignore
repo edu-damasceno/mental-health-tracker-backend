@@ -3,6 +3,8 @@ node_modules/
 
 # Environment
 .env
+.env.*
+!.env.example
 
 # Database
 *.db
@@ -21,4 +23,7 @@ npm-debug.log*
 .idea/
 
 # OS
-.DS_Store 
+.DS_Store
+
+# Coverage
+coverage/ 

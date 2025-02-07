@@ -5,6 +5,8 @@ import prisma from '../lib/prisma';
 import { authLimiter } from '../middleware/rateLimiter';
 import { validatePassword } from '../middleware/validatePassword';
 import { body, validationResult } from 'express-validator';
+import { authenticateToken } from '../middleware/authMiddleware';
+import { AuthRequest } from '../types/express';
 
 const router = Router();
 
@@ -97,7 +99,33 @@ const loginHandler: RequestHandler = async (req, res) => {
   }
 };
 
+const getMeHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = (req as unknown as AuthRequest).userId;
+    
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 router.post('/register', validateRegistration, validateRegistrationHandler, registerHandler);
 router.post('/login', authLimiter, loginHandler);
+router.get('/me', authenticateToken, getMeHandler);
 
 export default router; 
