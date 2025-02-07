@@ -6,6 +6,7 @@ import { config } from './config/env';
 import authRoutes from './routes/auth';
 import logsRoutes from './routes/logs';
 import rateLimit from 'express-rate-limit';
+import http from 'http';
 
 export const app = express();
 
@@ -26,18 +27,22 @@ export const authLimiter = rateLimit({
 app.use('/auth', authRoutes);
 app.use('/logs', logsRoutes);
 
-let server: any;
+let server: http.Server;
 let wss: WebSocket.Server;
 
 export const start = () => {
   return new Promise((resolve) => {
-    server = app.listen(config.PORT, () => {
+    // Create HTTP server from Express app
+    server = http.createServer(app);
+    
+    // Attach WebSocket server to HTTP server
+    wss = new WebSocket.Server({ server });
+    
+    server.listen(config.PORT, () => {
       const address = server.address();
-      const port = typeof address === 'object' ? address.port : config.PORT;
+      const port = address ? (typeof address === 'object' ? address.port : config.PORT) : config.PORT;
       console.log(`Server running on port ${port}`);
-      
-      wss = new WebSocket.Server({ port: config.WS_PORT });
-      resolve({ port, wsPort: wss.options.port });
+      resolve({ port });
     });
   });
 };
