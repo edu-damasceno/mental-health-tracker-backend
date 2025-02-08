@@ -2,9 +2,11 @@ import request from 'supertest';
 import { app } from '../server';
 import prisma from '../lib/prisma';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { generateToken } from '../utils/auth';
 
 describe('Auth Endpoints', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     await prisma.dailyLog.deleteMany();
     await prisma.user.deleteMany();
   });
@@ -24,11 +26,22 @@ describe('Auth Endpoints', () => {
   });
 
   it('should login existing user', async () => {
+    // Create a user first
+    const hashedPassword = await bcrypt.hash('testPassword123', 10);
+    await prisma.user.create({
+      data: {
+        email: 'test@example.com',
+        password: hashedPassword,
+        name: 'Test User'
+      }
+    });
+
+    // Try to login
     const res = await request(app)
       .post('/auth/login')
       .send({
         email: 'test@example.com',
-        password: 'Password123'
+        password: 'testPassword123'
       });
 
     expect(res.status).toBe(200);
@@ -140,5 +153,56 @@ describe('Auth Endpoints', () => {
 
     expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('error');
+  });
+
+  describe('GET /auth/me', () => {
+    it('should return user data with valid token', async () => {
+      // Create test user with unique email
+      const user = await prisma.user.create({
+        data: {
+          email: 'me-test@example.com', // Changed email to be unique
+          password: 'hashedPassword',
+          name: 'Test User'
+        }
+      });
+
+      const token = generateToken(user.id);
+
+      const response = await request(app)
+        .get('/auth/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body).toHaveProperty('email', 'me-test@example.com');
+      expect(response.body).toHaveProperty('name', 'Test User');
+      expect(response.body).not.toHaveProperty('password');
+    });
+
+    it('should return 401 without token', async () => {
+      const response = await request(app).get('/auth/me');
+      expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty('error', 'No authorization header');
+    });
+
+    it('should return 401 with invalid token', async () => {
+      const response = await request(app)
+        .get('/auth/me')
+        .set('Authorization', 'Bearer invalid-token');
+
+      expect(response.status).toBe(401);
+      expect(response.body).toHaveProperty('error', 'Invalid token');
+    });
+
+    it('should return 404 for non-existent user', async () => {
+      const token = generateToken('non-existent-id');
+
+      const response = await request(app)
+        .get('/auth/me')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(404);
+      expect(response.body).toHaveProperty('error', 'User not found');
+    });
   });
 }); 
