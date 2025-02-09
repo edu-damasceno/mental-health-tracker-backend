@@ -17,24 +17,20 @@ model User {
 }
 
 model DailyLog {
-  id        String   @id @default(uuid())
-  userId    String
-  date      DateTime @default(now())
-  
-  // Core metrics
-  moodLevel          Int      // 1-5
-  anxietyLevel       Int      // 1-5
-  sleepHours         Int
-  sleepQuality       String   // Poor, Fair, Good, Excellent
-  physicalActivity   String   // Type and duration
-  socialInteractions String   // Frequency/description
-  stressLevel        Int      // 1-5
-  symptoms           String   // Free-form description
-  primarySymptom     String?  // Main symptom category
-  symptomSeverity    Int?     // 1-5 scale
-  
-  createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
+  id          String   @id @default(cuid())
+  userId      String
+  createdAt   DateTime @default(now())
+  moodLevel   Int
+  anxietyLevel Int
+  sleepHours  Float
+  sleepQuality Int     // Changed from enum to Int
+  physicalActivity String
+  socialInteractions String
+  stressLevel Int
+  symptoms    String
+  primarySymptom String?
+  symptomSeverity Int?
+  user        User     @relation(fields: [userId], references: [id])
 
-  @@index([userId, date])
+  @@index([userId])
 } 

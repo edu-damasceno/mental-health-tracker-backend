@@ -3,7 +3,6 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
-const sleepQualities = ["Poor", "Fair", "Good", "Excellent"];
 const activities = [
   "30 minutes walking",
   "1 hour gym workout",
@@ -15,6 +14,35 @@ const socialActivities = [
   "Family dinner",
   "Video call with friends",
   "Quiet day at home",
+];
+
+// Example log data
+const sampleLogs = [
+  {
+    moodLevel: 4,
+    anxietyLevel: 2,
+    sleepHours: 7.5,
+    sleepQuality: 4, // Changed from "Good" to number
+    physicalActivity: "Morning jog",
+    socialInteractions: "Coffee with friends",
+    stressLevel: 2,
+    symptoms: "None",
+    primarySymptom: "",
+    symptomSeverity: null,
+  },
+  // Update other sample logs similarly
+  {
+    moodLevel: 3,
+    anxietyLevel: 3,
+    sleepHours: 6.5,
+    sleepQuality: 2, // Changed from "Poor" to number
+    physicalActivity: "Light stretching",
+    socialInteractions: "Video call with family",
+    stressLevel: 4,
+    symptoms: "Mild headache",
+    primarySymptom: "headache",
+    symptomSeverity: 2,
+  },
 ];
 
 async function main() {
@@ -42,12 +70,11 @@ async function main() {
     await prisma.dailyLog.create({
       data: {
         userId: user.id,
-        date,
+        createdAt: date,
         moodLevel: Math.floor(Math.random() * 5) + 1,
         anxietyLevel: Math.floor(Math.random() * 5) + 1,
         sleepHours: Math.floor(Math.random() * 4) + 5,
-        sleepQuality:
-          sleepQualities[Math.floor(Math.random() * sleepQualities.length)],
+        sleepQuality: Math.floor(Math.random() * 5) + 1,
         physicalActivity:
           activities[Math.floor(Math.random() * activities.length)],
         socialInteractions:

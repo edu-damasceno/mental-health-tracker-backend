@@ -11,30 +11,29 @@ interface CreateLogBody {
   moodLevel: number;
   anxietyLevel: number;
   sleepHours: number;
-  sleepQuality: string;
+  sleepQuality: number;
   physicalActivity: string;
   socialInteractions: string;
   stressLevel: number;
   symptoms: string;
   primarySymptom?: string;
-  symptomSeverity?: number;
-  date?: Date;
+  symptomSeverity?: number | null;
+  date?: string;
 }
 
 const validateLog = [
   body("moodLevel")
-    .isInt({ min: 1, max: 10 })
-    .withMessage("Mood level must be between 1 and 10"),
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Mood level must be between 1 and 5"),
   body("anxietyLevel")
-    .isInt({ min: 1, max: 10 })
-    .withMessage("Anxiety level must be between 1 and 10"),
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Anxiety level must be between 1 and 5"),
   body("sleepHours")
     .isFloat({ min: 0, max: 24 })
     .withMessage("Sleep hours must be between 0 and 24"),
   body("sleepQuality")
-    .isString()
-    .notEmpty()
-    .withMessage("Sleep quality must be a non-empty string"),
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Sleep quality must be between 1 and 5"),
   body("physicalActivity")
     .isString()
     .notEmpty()
@@ -44,17 +43,13 @@ const validateLog = [
     .notEmpty()
     .withMessage("Social interactions must be a non-empty string"),
   body("stressLevel")
-    .isInt({ min: 1, max: 10 })
-    .withMessage("Stress level must be between 1 and 10"),
-  body("symptoms")
-    .isString()
-    .notEmpty()
-    .withMessage("Symptoms must be a non-empty string"),
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Stress level must be between 1 and 5"),
+  body("symptoms").isString().optional({ nullable: true }).default(""),
   body("primarySymptom")
     .optional()
     .isString()
-    .notEmpty()
-    .withMessage("Primary symptom must be a non-empty string"),
+    .withMessage("Primary symptom must be a string"),
   body("symptomSeverity")
     .optional()
     .isInt({ min: 1, max: 5 })
@@ -144,7 +139,7 @@ const createLogHandler: RequestHandler = async (
     const existingLog = await prisma.dailyLog.findFirst({
       where: {
         userId,
-        date: {
+        createdAt: {
           gte: startOfDay,
           lte: endOfDay,
         },
@@ -160,17 +155,19 @@ const createLogHandler: RequestHandler = async (
     const log = await prisma.dailyLog.create({
       data: {
         user: { connect: { id: userId } },
-        moodLevel: body.moodLevel,
-        anxietyLevel: body.anxietyLevel,
-        sleepHours: body.sleepHours,
-        sleepQuality: body.sleepQuality,
+        moodLevel: Number(body.moodLevel),
+        anxietyLevel: Number(body.anxietyLevel),
+        sleepHours: Number(body.sleepHours),
+        sleepQuality: Number(body.sleepQuality),
         physicalActivity: body.physicalActivity,
         socialInteractions: body.socialInteractions,
-        stressLevel: body.stressLevel,
+        stressLevel: Number(body.stressLevel),
         symptoms: body.symptoms,
         primarySymptom: body.primarySymptom,
-        symptomSeverity: body.symptomSeverity,
-        date: logDate,
+        symptomSeverity: body.symptomSeverity
+          ? Number(body.symptomSeverity)
+          : null,
+        createdAt: logDate,
       },
     });
 
@@ -202,7 +199,7 @@ const getLogsHandler: RequestHandler = async (
 
     const logs = await prisma.dailyLog.findMany({
       where: { userId },
-      orderBy: { date: "desc" },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json(logs);
@@ -292,9 +289,9 @@ const filterLogsHandler: RequestHandler = async (req, res, next) => {
     const logs = await prisma.dailyLog.findMany({
       where: {
         userId,
-        date: dateFilter,
+        createdAt: dateFilter,
       },
-      orderBy: { date: "desc" },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json(logs);
@@ -312,9 +309,9 @@ const updateLogHandler: RequestHandler = async (
   try {
     const userId = (req as AuthRequest).userId;
     const logId = req.params.id;
-    const body = req.body as CreateLogBody;
+    const { createdAt, ...updates } = req.body;
 
-    // First verify the log belongs to the user
+    // First, fetch the existing log
     const existingLog = await prisma.dailyLog.findFirst({
       where: {
         id: logId,
@@ -323,34 +320,38 @@ const updateLogHandler: RequestHandler = async (
     });
 
     if (!existingLog) {
-      res.status(404).json({ error: "Log not found or unauthorized" });
+      res.status(404).json({ error: "Log not found" });
       return;
     }
 
-    const updatedLog = await prisma.dailyLog.update({
-      where: { id: logId },
-      data: {
-        moodLevel: body.moodLevel,
-        anxietyLevel: body.anxietyLevel,
-        sleepHours: body.sleepHours,
-        sleepQuality: body.sleepQuality,
-        physicalActivity: body.physicalActivity,
-        socialInteractions: body.socialInteractions,
-        stressLevel: body.stressLevel,
-        symptoms: body.symptoms,
-      },
-    });
+    // Check if the log is from today
+    const today = new Date();
+    const logDate = new Date(existingLog.createdAt);
 
-    // Broadcast the update
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(
-          JSON.stringify({
-            type: "UPDATE_LOG",
-            data: updatedLog,
-          })
-        );
-      }
+    if (!isSameDay(today, logDate)) {
+      res.status(403).json({
+        error: "Logs can only be edited on the day they were created",
+      });
+      return;
+    }
+
+    const safeUpdates = {
+      ...updates,
+      moodLevel: Number(updates.moodLevel),
+      anxietyLevel: Number(updates.anxietyLevel),
+      sleepHours: Number(updates.sleepHours),
+      sleepQuality: Number(updates.sleepQuality),
+      stressLevel: Number(updates.stressLevel),
+      symptomSeverity: updates.symptomSeverity
+        ? Number(updates.symptomSeverity)
+        : null,
+    };
+
+    const updatedLog = await prisma.dailyLog.update({
+      where: {
+        id: logId,
+      },
+      data: safeUpdates,
     });
 
     res.json(updatedLog);
@@ -358,6 +359,15 @@ const updateLogHandler: RequestHandler = async (
     next(error);
   }
 };
+
+// Helper function to check if two dates are the same day
+function isSameDay(date1: Date, date2: Date): boolean {
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() &&
+    date1.getDate() === date2.getDate()
+  );
+}
 
 // Delete a log
 const deleteLogHandler: RequestHandler = async (
@@ -416,18 +426,18 @@ const getMoodTrendsHandler: RequestHandler = async (
     const moodTrend = await prisma.dailyLog.findMany({
       where: {
         userId,
-        date: {
+        createdAt: {
           gte: new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000),
         },
       },
       select: {
-        date: true,
+        createdAt: true,
         moodLevel: true,
         anxietyLevel: true,
         stressLevel: true,
       },
       orderBy: {
-        date: "asc",
+        createdAt: "asc",
       },
     });
 
@@ -471,7 +481,7 @@ const getCorrelationsHandler: RequestHandler = async (
     const correlationData = await prisma.dailyLog.findMany({
       where: { userId },
       select: {
-        date: true,
+        createdAt: true,
         sleepHours: true,
         sleepQuality: true,
         moodLevel: true,
@@ -479,7 +489,7 @@ const getCorrelationsHandler: RequestHandler = async (
         stressLevel: true,
       },
       orderBy: {
-        date: "desc",
+        createdAt: "desc",
       },
       take: 30,
     });
@@ -501,14 +511,14 @@ const getWeeklyAveragesHandler: RequestHandler = async (
     const logs = await prisma.dailyLog.findMany({
       where: { userId },
       select: {
-        date: true,
+        createdAt: true,
         moodLevel: true,
         anxietyLevel: true,
         stressLevel: true,
         sleepHours: true,
       },
       orderBy: {
-        date: "desc",
+        createdAt: "desc",
       },
     });
 
@@ -521,7 +531,7 @@ const getWeeklyAveragesHandler: RequestHandler = async (
 
     const weeklyAverages = logs.reduce<Record<string, LogMetrics>>(
       (acc, log) => {
-        const weekStart = new Date(log.date);
+        const weekStart = new Date(log.createdAt);
         weekStart.setHours(0, 0, 0, 0);
         weekStart.setDate(weekStart.getDate() - weekStart.getDay());
 
@@ -594,16 +604,16 @@ const getSymptomAnalysisHandler: RequestHandler = async (
     const logs = await prisma.dailyLog.findMany({
       where: {
         userId,
-        date: dateFilter,
+        createdAt: dateFilter,
       },
       select: {
-        date: true,
+        createdAt: true,
         symptoms: true,
         moodLevel: true,
         anxietyLevel: true,
       },
       orderBy: {
-        date: "desc",
+        createdAt: "desc",
       },
     });
 
@@ -629,7 +639,7 @@ const getSymptomAnalysisHandler: RequestHandler = async (
       totalLogs: logs.length,
       analysis,
       logs: logs.map((log) => ({
-        date: log.date,
+        date: log.createdAt,
         moodLevel: log.moodLevel,
         anxietyLevel: log.anxietyLevel,
       })),

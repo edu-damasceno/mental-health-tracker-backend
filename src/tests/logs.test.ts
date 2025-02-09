@@ -6,18 +6,17 @@ import prisma from "../lib/prisma";
 interface DailyLog {
   id: string;
   userId: string;
-  date: string;
+  createdAt: string;
   moodLevel: number;
   anxietyLevel: number;
   sleepHours: number;
-  sleepQuality: string;
+  sleepQuality: number;
   physicalActivity: string;
   socialInteractions: string;
   stressLevel: number;
   symptoms: string;
   primarySymptom?: string;
   symptomSeverity?: number;
-  createdAt: string;
 }
 
 describe("Logs Endpoints", () => {
@@ -45,8 +44,8 @@ describe("Logs Endpoints", () => {
       .send({
         moodLevel: 4,
         anxietyLevel: 2,
-        sleepHours: 7,
-        sleepQuality: "Good",
+        sleepHours: 7.5,
+        sleepQuality: 4,
         physicalActivity: "30 minutes walking",
         socialInteractions: "Met with friends",
         stressLevel: 3,
@@ -73,7 +72,7 @@ describe("Logs Endpoints", () => {
         moodLevel: 4,
         anxietyLevel: 2,
         sleepHours: 7,
-        sleepQuality: "Good",
+        sleepQuality: 4,
         physicalActivity: "30 minutes walking",
         socialInteractions: "Met with friends",
         stressLevel: 3,
@@ -114,7 +113,7 @@ describe("Logs Endpoints", () => {
         moodLevel: 4,
         anxietyLevel: 2,
         sleepHours: 7,
-        sleepQuality: "Good",
+        sleepQuality: 4,
         physicalActivity: "30 minutes walking",
         socialInteractions: "Met with friends",
         stressLevel: 3,
@@ -147,7 +146,7 @@ describe("Logs Endpoints", () => {
         moodLevel: 4,
         anxietyLevel: 2,
         sleepHours: 7,
-        sleepQuality: "Good",
+        sleepQuality: 4,
         physicalActivity: "30 minutes walking",
         socialInteractions: "Met with friends",
         stressLevel: 3,
@@ -188,7 +187,7 @@ describe("Logs Endpoints", () => {
         moodLevel: 5,
         anxietyLevel: 1,
         sleepHours: 8,
-        sleepQuality: "Excellent",
+        sleepQuality: 4,
         physicalActivity: "1 hour gym",
         socialInteractions: "Family dinner",
         stressLevel: 2,
@@ -215,7 +214,7 @@ describe("Logs Endpoints", () => {
         moodLevel: 11, // Invalid: should be 1-10
         anxietyLevel: -1, // Invalid: should be positive
         sleepHours: 25, // Invalid: more than 24 hours
-        sleepQuality: "",
+        sleepQuality: 0,
         physicalActivity: "",
         socialInteractions: "",
         stressLevel: "high", // Invalid: should be number
@@ -255,7 +254,7 @@ describe("Logs Endpoints", () => {
         moodLevel: 1,
         anxietyLevel: 1,
         sleepHours: 8,
-        sleepQuality: "Good",
+        sleepQuality: 4,
         physicalActivity: "None",
         socialInteractions: "None",
         stressLevel: 1,
@@ -282,7 +281,7 @@ describe("Logs Endpoints", () => {
         moodLevel: 4,
         anxietyLevel: 2,
         sleepHours: 7,
-        sleepQuality: "Good",
+        sleepQuality: 4,
         physicalActivity: "30 minutes walking",
         socialInteractions: "Met with friends",
         stressLevel: 3,
@@ -297,7 +296,7 @@ describe("Logs Endpoints", () => {
         moodLevel: 4,
         anxietyLevel: 2,
         sleepHours: 7,
-        sleepQuality: "Good",
+        sleepQuality: 4,
         physicalActivity: "30 minutes walking",
         socialInteractions: "Met with friends",
         stressLevel: 3,
@@ -380,7 +379,7 @@ describe("Logs Endpoints", () => {
         moodLevel: 4,
         anxietyLevel: 3,
         sleepHours: 7,
-        sleepQuality: "Good",
+        sleepQuality: 4,
         physicalActivity: "30min walking",
         socialInteractions: "Coffee with friends",
         stressLevel: 3,
@@ -404,3 +403,16 @@ describe("Logs Endpoints", () => {
     expect(response.body).toHaveProperty("analysis");
   });
 });
+
+const mockLogData = {
+  moodLevel: 3,
+  anxietyLevel: 2,
+  sleepHours: 7.5,
+  sleepQuality: 4,
+  physicalActivity: "Morning jog",
+  socialInteractions: "Video call with friends",
+  stressLevel: 2,
+  symptoms: "",
+  primarySymptom: "",
+  symptomSeverity: null,
+};

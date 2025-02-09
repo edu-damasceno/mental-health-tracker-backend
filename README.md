@@ -121,3 +121,12 @@ npm start
 ## License
 
 [MIT](LICENSE)
+
+## Daily Log Fields
+
+### Rating Scales (1-5)
+
+- **moodLevel**: 1: Very Sad → 5: Very Happy
+- **anxietyLevel**: 1: Very Anxious → 5: Very Calm
+- **sleepQuality**: 1: Very Poor → 5: Very Good
+- **stressLevel**: 1: Very High → 5: Very Low
