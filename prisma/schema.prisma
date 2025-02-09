@@ -21,16 +21,20 @@ model DailyLog {
   userId    String
   date      DateTime @default(now())
   
-  // Core metrics from requirements
-  moodLevel          Int      // Scale: 1-5 (very sad to very happy)
-  anxietyLevel       Int      // Scale: 1-5
+  // Core metrics
+  moodLevel          Int      // 1-5
+  anxietyLevel       Int      // 1-5
   sleepHours         Int
   sleepQuality       String   // Poor, Fair, Good, Excellent
   physicalActivity   String   // Type and duration
   socialInteractions String   // Frequency/description
-  stressLevel        Int      // Scale: 1-5
-  symptoms           String   // Description of depression/anxiety symptoms
+  stressLevel        Int      // 1-5
+  symptoms           String   // Free-form description
+  primarySymptom     String?  // Main symptom category
+  symptomSeverity    Int?     // 1-5 scale
   
   createdAt  DateTime @default(now())
   user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
 } 
