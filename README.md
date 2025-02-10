@@ -65,20 +65,6 @@ npm run dev
 - PUT `/api/logs/:id` - Update log entry
 - DELETE `/api/logs/:id` - Delete log entry
 
-### Analytics
-
-- GET `/api/logs/trends/mood` - Get mood trends
-- GET `/api/logs/stats/sleep` - Get sleep statistics
-- GET `/api/logs/correlations` - Get metric correlations
-- GET `/api/logs/stats/weekly` - Get weekly averages
-- GET `/api/logs/stats/symptoms` - Get symptom analysis
-
-## Testing
-
-```bash
-npm test
-```
-
 ## License
 
 MIT
