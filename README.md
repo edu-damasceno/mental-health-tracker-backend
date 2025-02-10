@@ -65,10 +65,6 @@ npm run dev
 - PUT `/api/logs/:id` - Update log entry
 - DELETE `/api/logs/:id` - Delete log entry
 
-## License
-
-MIT
-
 ## Daily Log Fields
 
 ### Rating Scales (1-5)
@@ -89,3 +85,7 @@ MIT
 ### Sleep Hours
 
 - **sleepHours**: Number between 0-24, in 0.5 increments
+
+## License
+
+MIT
