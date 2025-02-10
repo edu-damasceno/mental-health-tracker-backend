@@ -8,9 +8,9 @@ A Node.js/Express backend for tracking daily mental health metrics with real-tim
 - Daily mental health logging
 - Period-based log filtering (week, month, custom)
 - Real-time updates via WebSocket
-- Input validation and sanitization
+- Input validation with Zod and Express Validator
 - Rate limiting for security
-- Comprehensive test coverage
+- Comprehensive error handling
 
 ## Tech Stack
 
@@ -18,7 +18,7 @@ A Node.js/Express backend for tracking daily mental health metrics with real-tim
 - TypeScript
 - Prisma (SQLite)
 - WebSocket (ws)
-- Jest & Supertest
+- Zod Validation
 - Express Validator
 - JWT Authentication
 
@@ -130,3 +130,15 @@ npm start
 - **anxietyLevel**: 1: Very Anxious → 5: Very Calm
 - **sleepQuality**: 1: Very Poor → 5: Very Good
 - **stressLevel**: 1: Very High → 5: Very Low
+
+### Optional Fields
+
+- **physicalActivity**: String (optional)
+- **socialInteractions**: String (optional)
+- **symptoms**: String (optional)
+- **primarySymptom**: String (optional)
+- **symptomSeverity**: Number 1-5 (optional)
+
+### Sleep Hours
+
+- **sleepHours**: Number between 0-24, in 0.5 increments
