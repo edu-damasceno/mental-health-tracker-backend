@@ -1,6 +1,6 @@
 # Mental Health Tracker API
 
-A REST API for tracking mental health metrics, built with Express.js, TypeScript, and PostgreSQL.
+A REST API for tracking mental health metrics, built with Express.js, TypeScript, and SQLite.
 
 ## Features
 
@@ -18,7 +18,6 @@ A REST API for tracking mental health metrics, built with Express.js, TypeScript
 ### Prerequisites
 
 - Node.js 18+
-- PostgreSQL
 - npm or yarn
 
 ### Installation
@@ -33,7 +32,7 @@ npm install
 3. Create a `.env` file:
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/mental_health_db"
+DATABASE_URL="file:./dev.db"
 JWT_SECRET="your-secret-key"
 PORT=8080
 ```
