@@ -112,10 +112,19 @@ const validateLogHandler: RequestHandler = (req, res, next) => {
   next();
 };
 
-const validatePeriodHandler: RequestHandler = (req, res, next) => {
+const validatePeriodHandler: RequestHandler = async (
+  req,
+  res,
+  next
+): Promise<void> => {
   const errors = validationResult(req);
+  console.log("Period validation:", {
+    hasErrors: !errors.isEmpty(),
+    errors: errors.array(),
+    query: req.query,
+  });
   if (!errors.isEmpty()) {
-    res.status(400).json({ error: errors.array()[0].msg });
+    res.status(400).json({ errors: errors.array() });
     return;
   }
   next();
@@ -696,12 +705,74 @@ const getSymptomAnalysisHandler: RequestHandler = async (
   }
 };
 
+const getFilteredLogsHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = (req as AuthRequest).userId;
+    const { startDate, endDate } = req.query;
+
+    console.log("Received filter request:", {
+      startDate,
+      endDate,
+      userId,
+      requestUrl: req.url,
+      requestQuery: req.query,
+    });
+
+    // Parse dates and ensure they are valid
+    const start = new Date(startDate as string);
+    start.setUTCHours(0, 0, 0, 0);
+
+    const end = new Date(endDate as string);
+    end.setUTCHours(23, 59, 59, 999);
+
+    console.log("Date range:", {
+      start: start.toISOString(),
+      end: end.toISOString(),
+      now: new Date().toISOString(),
+    });
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      console.log("Invalid date format");
+      res.status(400).json({ error: "Invalid date format" });
+      return;
+    }
+
+    const logs = await prisma.dailyLog.findMany({
+      where: {
+        userId,
+        createdAt: {
+          gte: start,
+          lte: end,
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    console.log("Query results:", {
+      resultCount: logs.length,
+      firstDate: logs[0]?.createdAt,
+      lastDate: logs[logs.length - 1]?.createdAt,
+      query: {
+        userId,
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+      },
+    });
+
+    res.json(logs);
+  } catch (error) {
+    console.error("Error in getFilteredLogsHandler:", error);
+    res.status(500).json({ error: "Failed to fetch logs" });
+  }
+};
+
 // Apply middleware and handlers
 router.use(authenticateToken);
 
 router.post("/", createLogHandler);
 router.get("/", getLogsHandler);
-router.get("/filter", validatePeriod, validatePeriodHandler, filterLogsHandler);
 router.put("/:id", validateLog, validateLogHandler, updateLogHandler);
 router.delete("/:id", deleteLogHandler);
 router.get("/trends/mood", getMoodTrendsHandler);
@@ -709,5 +780,11 @@ router.get("/stats/sleep", getSleepStatsHandler);
 router.get("/correlations", getCorrelationsHandler);
 router.get("/stats/weekly", getWeeklyAveragesHandler);
 router.get("/stats/symptoms", getSymptomAnalysisHandler);
+router.get(
+  "/filter",
+  validatePeriod,
+  validatePeriodHandler,
+  getFilteredLogsHandler
+);
 
 export default router;
