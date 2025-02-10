@@ -116,10 +116,8 @@ function isISO8601Date(value: string): boolean {
 
 // Validation handlers
 const validateLogHandler: RequestHandler = (req, res, next) => {
-  console.log("Validating log data:", req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log("Validation errors:", errors.array());
     res.status(400).json({ error: errors.array()[0].msg });
     return;
   }
@@ -325,44 +323,38 @@ const updateLogHandler: RequestHandler = async (req, res): Promise<void> => {
     const logId = req.params.id;
     const body = req.body as CreateLogBody;
 
-    console.log("🔄 Update request received:", { logId, body });
-
     const existingLog = await prisma.dailyLog.findFirst({
       where: { id: logId, userId },
     });
 
     if (!existingLog) {
-      console.log("❌ Log not found for update - ID:", logId);
       res.status(404).json({ error: "Log not found" });
       return;
     }
 
-    // Convert numeric strings to numbers
-    const updatedData = {
-      moodLevel: Number(body.moodLevel),
-      anxietyLevel: Number(body.anxietyLevel),
-      sleepHours: Number(body.sleepHours),
-      sleepQuality: Number(body.sleepQuality),
-      stressLevel: Number(body.stressLevel),
-      physicalActivity: body.physicalActivity,
-      socialInteractions: body.socialInteractions || "",
-      symptoms: body.symptoms || "",
-      primarySymptom: body.primarySymptom || null,
-      symptomSeverity: body.symptomSeverity
-        ? Number(body.symptomSeverity)
-        : null,
-    };
-
     const updatedLog = await prisma.dailyLog.update({
       where: { id: logId },
-      data: updatedData,
+      data: {
+        moodLevel: Number(body.moodLevel),
+        anxietyLevel: Number(body.anxietyLevel),
+        sleepHours: Number(body.sleepHours),
+        sleepQuality: Number(body.sleepQuality),
+        physicalActivity: body.physicalActivity?.trim() || "None",
+        socialInteractions: body.socialInteractions?.trim() || "None",
+        stressLevel: Number(body.stressLevel),
+        symptoms: body.symptoms?.trim() || "",
+        primarySymptom: body.primarySymptom?.trim() || null,
+        symptomSeverity: body.symptomSeverity || null,
+      },
     });
 
-    console.log("✅ Log updated successfully:", updatedLog);
     res.json(updatedLog);
   } catch (error) {
-    console.error("💥 Update error:", error);
-    res.status(500).json({ error: "Failed to update log" });
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Failed to update log" });
+    }
   }
 };
 
@@ -655,30 +647,15 @@ const getSymptomAnalysisHandler: RequestHandler = async (
   }
 };
 
+// Get filtered logs
 const getFilteredLogsHandler: RequestHandler = async (req, res) => {
   try {
     const userId = (req as AuthRequest).userId;
     const { startDate, endDate } = req.query;
 
-    // If we're querying for a single day, clean up duplicates
-    if (startDate === endDate) {
-      const date = new Date(startDate as string);
-      const cleanedLog = await cleanupDuplicateLogs(userId, date);
-      res.json(cleanedLog ? [cleanedLog] : []);
-      return;
-    }
-
-    // Parse dates and ensure they are valid
-    const start = new Date(startDate as string);
-    start.setUTCHours(0, 0, 0, 0);
-
-    const end = new Date(endDate as string);
-    end.setUTCHours(23, 59, 59, 999);
-
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      res.status(400).json({ error: "Invalid date format" });
-      return;
-    }
+    // Create UTC dates for start and end of the day
+    const start = new Date(`${startDate}T00:00:00.000Z`);
+    const end = new Date(`${endDate}T23:59:59.999Z`);
 
     const logs = await prisma.dailyLog.findMany({
       where: {
@@ -691,12 +668,13 @@ const getFilteredLogsHandler: RequestHandler = async (req, res) => {
       orderBy: {
         createdAt: "desc",
       },
-      take: 1,
     });
 
     res.json(logs);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch logs" });
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to fetch filtered logs";
+    res.status(500).json({ error: errorMessage });
   }
 };
 
@@ -724,15 +702,8 @@ const cleanupDuplicateLogs = async (userId: string, date: Date) => {
 
   // If there are multiple logs, keep only the most recent one
   if (logs.length > 1) {
-    console.log(
-      `Found ${logs.length} logs for ${
-        date.toISOString().split("T")[0]
-      }, cleaning up...`
-    );
-
     // Delete all but the most recent
     const [mostRecent, ...duplicates] = logs;
-
     await prisma.dailyLog.deleteMany({
       where: {
         id: {
@@ -740,8 +711,6 @@ const cleanupDuplicateLogs = async (userId: string, date: Date) => {
         },
       },
     });
-
-    console.log(`Cleaned up ${duplicates.length} duplicate logs`);
     return mostRecent;
   }
 
@@ -794,7 +763,7 @@ const getLogByIdHandler: RequestHandler = async (req, res) => {
 
     res.json(log);
   } catch (error) {
-    console.error("Error fetching log:", error);
+    console.error("💥 Error fetching log:", error);
     res.status(500).json({ error: "Failed to fetch log" });
   }
 };
