@@ -1,69 +1,71 @@
 # Mental Health Tracker API
 
-A REST API for tracking mental health metrics, built with Express.js, TypeScript, and SQLite.
+A robust REST API built with Express and TypeScript for tracking daily mental health metrics and generating insights.
 
 ## Features
 
-- User authentication with JWT
-- Daily mood, anxiety and stress level tracking
-- Sleep quality monitoring
-- Physical activity logging
-- Symptom tracking
-- Real-time updates via WebSocket
-- Data analytics and trends
-- Rate limiting and security measures
+- 📊 Daily mood and wellness logging
+- 🔍 Time-based filtering and analytics
+- 🔒 User authentication and data privacy
+- 🔄 Real-time updates via WebSocket
+- ✅ Data validation and sanitization
+- 🎯 Duplicate entry prevention
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Create a `.env` file:
-
-```env
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="your-secret-key"
-PORT=8080
-```
-
-4. Run migrations:
-
-```bash
-npx prisma migrate dev
-```
-
-5. Start the server:
-
-```bash
-npm run dev
-```
-
-## API Documentation
-
-### Authentication
-
-- POST `/api/auth/register` - Register new user
-- POST `/api/auth/login` - Login user
-- GET `/api/auth/me` - Get current user
+## API Endpoints
 
 ### Logs
 
-- POST `/api/logs` - Create new log entry
-- GET `/api/logs` - Get all logs
-- GET `/api/logs/filter` - Get logs by date range
-- PUT `/api/logs/:id` - Update log entry
-- DELETE `/api/logs/:id` - Delete log entry
+- `GET /api/logs` - Get all logs
+- `GET /api/logs/today` - Check today's log
+- `GET /api/logs/:id` - Get specific log
+- `POST /api/logs` - Create new log
+- `PUT /api/logs/:id` - Update existing log
+- `DELETE /api/logs/:id` - Delete log
+
+### Analytics
+
+- `GET /api/logs/filter?startDate&endDate` - Get filtered logs
+- `GET /api/logs/trends/mood` - Get mood trends
+- `GET /api/logs/stats/sleep` - Get sleep statistics
+- `GET /api/logs/stats/weekly` - Get weekly averages
+- `GET /api/logs/stats/symptoms` - Get symptom analysis
+
+## Tech Stack
+
+- Node.js & Express
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- WebSocket
+- JWT Authentication
+- Express Validator
+
+## Setup
+
+1. Clone repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables (see below)
+4. Run migrations:
+   ```bash
+   npx prisma migrate dev
+   ```
+5. Start development server:
+   ```bash
+   npm run dev
+   ```
+
+## Environment Variables
+
+Create a `.env` file with:
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/mental_health_db"
+JWT_SECRET="your-jwt-secret"
+PORT=8080
+```
 
 ## Daily Log Fields
 
