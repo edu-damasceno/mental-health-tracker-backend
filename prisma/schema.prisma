@@ -24,12 +24,12 @@ model DailyLog {
   moodLevel   Int
   anxietyLevel Int
   sleepHours  Float
-  sleepQuality Int     // Changed from enum to Int
-  physicalActivity String
-  socialInteractions String
+  sleepQuality Int
+  physicalActivity String?   @default("None")
+  socialInteractions String? @default("None")
   stressLevel Int
-  symptoms    String
-  primarySymptom String?
+  symptoms    String         @default("")
+  primarySymptom String?     @default("")
   symptomSeverity Int?
   user        User     @relation(fields: [userId], references: [id])
 

@@ -30,32 +30,44 @@ const validateLog = [
     .isInt({ min: 1, max: 5 })
     .withMessage("Anxiety level must be between 1 and 5"),
   body("sleepHours")
-    .isFloat({ min: 0, max: 24 })
+    .isNumeric()
+    .custom((value) => {
+      const num = parseFloat(value);
+      return num >= 0 && num <= 24;
+    })
     .withMessage("Sleep hours must be between 0 and 24"),
   body("sleepQuality")
     .isInt({ min: 1, max: 5 })
     .withMessage("Sleep quality must be between 1 and 5"),
   body("physicalActivity")
+    .optional()
     .isString()
-    .notEmpty()
-    .withMessage("Physical activity must be a non-empty string"),
+    .withMessage("Physical activity must be a string if provided"),
   body("socialInteractions")
     .optional()
     .isString()
-    .default("")
     .withMessage("Social interactions must be a string if provided"),
   body("stressLevel")
     .isInt({ min: 1, max: 5 })
     .withMessage("Stress level must be between 1 and 5"),
-  body("symptoms").isString().optional({ nullable: true }).default(""),
+  body("symptoms").isString().withMessage("Symptoms must be a string"),
   body("primarySymptom")
     .optional()
     .isString()
-    .withMessage("Primary symptom must be a string"),
+    .withMessage("Primary symptom must be a string if provided"),
   body("symptomSeverity")
-    .optional()
+    .optional({ nullable: true })
     .isInt({ min: 1, max: 5 })
-    .withMessage("Symptom severity must be between 1 and 5"),
+    .custom((value, { req }) => {
+      if (value === null) return true;
+      if (!req.body.symptoms?.trim() && value !== null) {
+        throw new Error("Symptom severity can only be set when symptoms exist");
+      }
+      if (value !== null && (value < 1 || value > 5)) {
+        throw new Error("Symptom severity must be between 1 and 5 if provided");
+      }
+      return true;
+    }),
 ];
 
 const validatePeriod = [
@@ -104,8 +116,10 @@ function isISO8601Date(value: string): boolean {
 
 // Validation handlers
 const validateLogHandler: RequestHandler = (req, res, next) => {
+  console.log("Validating log data:", req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log("Validation errors:", errors.array());
     res.status(400).json({ error: errors.array()[0].msg });
     return;
   }
@@ -118,11 +132,6 @@ const validatePeriodHandler: RequestHandler = async (
   next
 ): Promise<void> => {
   const errors = validationResult(req);
-  console.log("Period validation:", {
-    hasErrors: !errors.isEmpty(),
-    errors: errors.array(),
-    query: req.query,
-  });
   if (!errors.isEmpty()) {
     res.status(400).json({ errors: errors.array() });
     return;
@@ -170,14 +179,12 @@ const createLogHandler: RequestHandler = async (
         anxietyLevel: Number(body.anxietyLevel),
         sleepHours: Number(body.sleepHours),
         sleepQuality: Number(body.sleepQuality),
-        physicalActivity: body.physicalActivity,
-        socialInteractions: body.socialInteractions,
+        physicalActivity: body.physicalActivity?.trim() || "None",
+        socialInteractions: body.socialInteractions?.trim() || "None",
         stressLevel: Number(body.stressLevel),
-        symptoms: body.symptoms || "", // Make symptoms optional
-        primarySymptom: body.primarySymptom || null, // Optional field
-        symptomSeverity: body.symptomSeverity
-          ? Number(body.symptomSeverity)
-          : null, // Optional field
+        symptoms: body.symptoms?.trim() || "",
+        primarySymptom: body.primarySymptom?.trim() || null,
+        symptomSeverity: body.symptomSeverity || null,
         createdAt: logDate,
       },
     });
@@ -316,103 +323,46 @@ const updateLogHandler: RequestHandler = async (req, res): Promise<void> => {
   try {
     const userId = (req as AuthRequest).userId;
     const logId = req.params.id;
-    const body = req.body;
+    const body = req.body as CreateLogBody;
 
-    // First check if the log exists and belongs to the user
+    console.log("🔄 Update request received:", { logId, body });
+
     const existingLog = await prisma.dailyLog.findFirst({
-      where: {
-        id: logId,
-        userId,
-      },
+      where: { id: logId, userId },
     });
 
     if (!existingLog) {
+      console.log("❌ Log not found for update - ID:", logId);
       res.status(404).json({ error: "Log not found" });
       return;
     }
 
-    // Validate the request body
-    if (!body || typeof body !== "object") {
-      const error = {
-        message: "Invalid request body",
-        received: body,
-        type: typeof body,
-      };
-      res.status(400).json({ error });
-      return;
-    }
-
-    // Validate required fields
-    const requiredFields = [
-      "moodLevel",
-      "anxietyLevel",
-      "sleepHours",
-      "sleepQuality",
-      "physicalActivity",
-      "stressLevel",
-    ];
-
-    const missingFields = requiredFields.filter((field) => !(field in body));
-    if (missingFields.length > 0) {
-      const error = {
-        message: "Missing required fields",
-        missingFields,
-        receivedFields: Object.keys(body),
-      };
-      res.status(400).json({ error });
-      return;
-    }
-
-    // Only validate symptom severity if symptoms exist
-    if (body.symptoms && body.symptomSeverity !== undefined) {
-      const severity = Number(body.symptomSeverity);
-      if (isNaN(severity) || severity < 1 || severity > 5) {
-        res
-          .status(400)
-          .json({ error: "Symptom severity must be between 1 and 5" });
-        return;
-      }
-    }
+    // Convert numeric strings to numbers
+    const updatedData = {
+      moodLevel: Number(body.moodLevel),
+      anxietyLevel: Number(body.anxietyLevel),
+      sleepHours: Number(body.sleepHours),
+      sleepQuality: Number(body.sleepQuality),
+      stressLevel: Number(body.stressLevel),
+      physicalActivity: body.physicalActivity,
+      socialInteractions: body.socialInteractions || "",
+      symptoms: body.symptoms || "",
+      primarySymptom: body.primarySymptom || null,
+      symptomSeverity: body.symptomSeverity
+        ? Number(body.symptomSeverity)
+        : null,
+    };
 
     const updatedLog = await prisma.dailyLog.update({
-      where: {
-        id: logId,
-        userId,
-      },
-      data: {
-        moodLevel: Number(body.moodLevel),
-        anxietyLevel: Number(body.anxietyLevel),
-        sleepHours: Number(body.sleepHours),
-        sleepQuality: Number(body.sleepQuality),
-        physicalActivity: String(body.physicalActivity),
-        socialInteractions: String(body.socialInteractions),
-        stressLevel: Number(body.stressLevel),
-        symptoms: body.symptoms || "",
-        primarySymptom: body.primarySymptom || "",
-        symptomSeverity:
-          body.symptomSeverity !== undefined
-            ? Number(body.symptomSeverity)
-            : null,
-      },
+      where: { id: logId },
+      data: updatedData,
     });
 
+    console.log("✅ Log updated successfully:", updatedLog);
     res.json(updatedLog);
-  } catch (error: unknown) {
-    const err = error as Error;
-
-    // Check if it's a Prisma error
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
-      if (err.code === "P2025") {
-        res.status(404).json({ error: "Log not found" });
-        return;
-      }
-    }
-
-    console.error("Update log error:", {
-      message: err.message,
-      stack: err.stack,
-    });
-    res.status(500).json({ error: err.message || "Server error" });
+  } catch (error) {
+    console.error("💥 Update error:", error);
+    res.status(500).json({ error: "Failed to update log" });
   }
 };
 
@@ -710,13 +660,13 @@ const getFilteredLogsHandler: RequestHandler = async (req, res) => {
     const userId = (req as AuthRequest).userId;
     const { startDate, endDate } = req.query;
 
-    console.log("Received filter request:", {
-      startDate,
-      endDate,
-      userId,
-      requestUrl: req.url,
-      requestQuery: req.query,
-    });
+    // If we're querying for a single day, clean up duplicates
+    if (startDate === endDate) {
+      const date = new Date(startDate as string);
+      const cleanedLog = await cleanupDuplicateLogs(userId, date);
+      res.json(cleanedLog ? [cleanedLog] : []);
+      return;
+    }
 
     // Parse dates and ensure they are valid
     const start = new Date(startDate as string);
@@ -725,14 +675,7 @@ const getFilteredLogsHandler: RequestHandler = async (req, res) => {
     const end = new Date(endDate as string);
     end.setUTCHours(23, 59, 59, 999);
 
-    console.log("Date range:", {
-      start: start.toISOString(),
-      end: end.toISOString(),
-      now: new Date().toISOString(),
-    });
-
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      console.log("Invalid date format");
       res.status(400).json({ error: "Invalid date format" });
       return;
     }
@@ -746,35 +689,121 @@ const getFilteredLogsHandler: RequestHandler = async (req, res) => {
         },
       },
       orderBy: {
-        createdAt: "asc",
+        createdAt: "desc",
       },
-    });
-
-    console.log("Query results:", {
-      resultCount: logs.length,
-      firstDate: logs[0]?.createdAt,
-      lastDate: logs[logs.length - 1]?.createdAt,
-      query: {
-        userId,
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
-      },
+      take: 1,
     });
 
     res.json(logs);
   } catch (error) {
-    console.error("Error in getFilteredLogsHandler:", error);
     res.status(500).json({ error: "Failed to fetch logs" });
+  }
+};
+
+// Add this function to clean up duplicate logs
+const cleanupDuplicateLogs = async (userId: string, date: Date) => {
+  const start = new Date(date);
+  start.setUTCHours(0, 0, 0, 0);
+
+  const end = new Date(date);
+  end.setUTCHours(23, 59, 59, 999);
+
+  // Get all logs for the day
+  const logs = await prisma.dailyLog.findMany({
+    where: {
+      userId,
+      createdAt: {
+        gte: start,
+        lte: end,
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  // If there are multiple logs, keep only the most recent one
+  if (logs.length > 1) {
+    console.log(
+      `Found ${logs.length} logs for ${
+        date.toISOString().split("T")[0]
+      }, cleaning up...`
+    );
+
+    // Delete all but the most recent
+    const [mostRecent, ...duplicates] = logs;
+
+    await prisma.dailyLog.deleteMany({
+      where: {
+        id: {
+          in: duplicates.map((log) => log.id),
+        },
+      },
+    });
+
+    console.log(`Cleaned up ${duplicates.length} duplicate logs`);
+    return mostRecent;
+  }
+
+  return logs[0];
+};
+
+// Check if a log exists for today
+const getTodayLogHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = (req as AuthRequest).userId;
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayLog = await prisma.dailyLog.findFirst({
+      where: {
+        userId,
+        createdAt: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+    });
+
+    res.json({ exists: !!todayLog, log: todayLog });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to check today's log" });
+  }
+};
+
+// Get a single log by ID
+const getLogByIdHandler: RequestHandler = async (req, res) => {
+  try {
+    const userId = (req as AuthRequest).userId;
+    const logId = req.params.id;
+
+    const log = await prisma.dailyLog.findFirst({
+      where: {
+        id: logId,
+        userId,
+      },
+    });
+
+    if (!log) {
+      res.status(404).json({ error: "Log not found" });
+      return;
+    }
+
+    res.json(log);
+  } catch (error) {
+    console.error("Error fetching log:", error);
+    res.status(500).json({ error: "Failed to fetch log" });
   }
 };
 
 // Apply middleware and handlers
 router.use(authenticateToken);
 
-router.post("/", createLogHandler);
-router.get("/", getLogsHandler);
-router.put("/:id", validateLog, validateLogHandler, updateLogHandler);
-router.delete("/:id", deleteLogHandler);
+// Specific routes first
+router.get("/today", getTodayLogHandler);
 router.get("/trends/mood", getMoodTrendsHandler);
 router.get("/stats/sleep", getSleepStatsHandler);
 router.get("/correlations", getCorrelationsHandler);
@@ -786,5 +815,12 @@ router.get(
   validatePeriodHandler,
   getFilteredLogsHandler
 );
+
+// Generic CRUD routes
+router.get("/", getLogsHandler);
+router.post("/", validateLog, validateLogHandler, createLogHandler);
+router.get("/:id", getLogByIdHandler);
+router.put("/:id", validateLog, validateLogHandler, updateLogHandler);
+router.delete("/:id", deleteLogHandler);
 
 export default router;
