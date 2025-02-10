@@ -1,126 +1,88 @@
-# Mental Health Tracker Backend
+# Mental Health Tracker API
 
-A Node.js/Express backend for tracking daily mental health metrics with real-time updates.
+A REST API for tracking mental health metrics, built with Express.js, TypeScript, and PostgreSQL.
 
 ## Features
 
 - User authentication with JWT
-- Daily mental health logging
-- Period-based log filtering (week, month, custom)
+- Daily mood, anxiety and stress level tracking
+- Sleep quality monitoring
+- Physical activity logging
+- Symptom tracking
 - Real-time updates via WebSocket
-- Input validation with Zod and Express Validator
-- Rate limiting for security
-- Comprehensive error handling
-
-## Tech Stack
-
-- Node.js & Express
-- TypeScript
-- Prisma (SQLite)
-- WebSocket (ws)
-- Zod Validation
-- Express Validator
-- JWT Authentication
+- Data analytics and trends
+- Rate limiting and security measures
 
 ## Getting Started
 
-1. Clone the repository:
+### Prerequisites
 
-```bash
-git clone <repository-url>
-cd mental-health-tracker-backend
-```
+- Node.js 18+
+- PostgreSQL
+- npm or yarn
 
+### Installation
+
+1. Clone the repository
 2. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
+3. Create a `.env` file:
 
-```bash
-cp .env.example .env
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/mental_health_db"
+JWT_SECRET="your-secret-key"
+PORT=8080
 ```
 
-4. Set up the database:
+4. Run migrations:
 
 ```bash
 npx prisma migrate dev
 ```
 
-5. Start the development server:
+5. Start the server:
 
 ```bash
 npm run dev
 ```
 
-## API Routes
+## API Documentation
 
 ### Authentication
 
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user
+- POST `/api/auth/register` - Register new user
+- POST `/api/auth/login` - Login user
+- GET `/api/auth/me` - Get current user
 
 ### Logs
 
-- `POST /api/logs` - Create a new log
-- `GET /api/logs/filter` - Get logs with period filtering
-- `PUT /api/logs/:id` - Update a log
-- `DELETE /api/logs/:id` - Delete a log
+- POST `/api/logs` - Create new log entry
+- GET `/api/logs` - Get all logs
+- GET `/api/logs/filter` - Get logs by date range
+- PUT `/api/logs/:id` - Update log entry
+- DELETE `/api/logs/:id` - Delete log entry
 
-For detailed API examples, see [api-examples.md](docs/api-examples.md)
+### Analytics
 
-## WebSocket
-
-The application provides real-time updates through WebSocket connection on:
-
-```
-ws://localhost:8080
-```
+- GET `/api/logs/trends/mood` - Get mood trends
+- GET `/api/logs/stats/sleep` - Get sleep statistics
+- GET `/api/logs/correlations` - Get metric correlations
+- GET `/api/logs/stats/weekly` - Get weekly averages
+- GET `/api/logs/stats/symptoms` - Get symptom analysis
 
 ## Testing
-
-Run the test suite:
 
 ```bash
 npm test
 ```
 
-Current test coverage: ~75%
-
-## Development
-
-1. Run in development mode:
-
-```bash
-npm run dev
-```
-
-2. Build for production:
-
-```bash
-npm run build
-```
-
-3. Start production server:
-
-```bash
-npm start
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
 ## License
 
-[MIT](LICENSE)
+MIT
 
 ## Daily Log Fields
 
