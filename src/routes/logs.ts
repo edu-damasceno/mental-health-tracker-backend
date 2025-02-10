@@ -4,6 +4,7 @@ import prisma from "../lib/prisma";
 import { wss } from "../server";
 import WebSocket from "ws";
 import { body, query, validationResult } from "express-validator";
+import { Prisma } from "@prisma/client";
 
 const router = Router();
 
@@ -39,9 +40,10 @@ const validateLog = [
     .notEmpty()
     .withMessage("Physical activity must be a non-empty string"),
   body("socialInteractions")
+    .optional()
     .isString()
-    .notEmpty()
-    .withMessage("Social interactions must be a non-empty string"),
+    .default("")
+    .withMessage("Social interactions must be a string if provided"),
   body("stressLevel")
     .isInt({ min: 1, max: 5 })
     .withMessage("Stress level must be between 1 and 5"),
@@ -162,11 +164,11 @@ const createLogHandler: RequestHandler = async (
         physicalActivity: body.physicalActivity,
         socialInteractions: body.socialInteractions,
         stressLevel: Number(body.stressLevel),
-        symptoms: body.symptoms,
-        primarySymptom: body.primarySymptom,
+        symptoms: body.symptoms || "", // Make symptoms optional
+        primarySymptom: body.primarySymptom || null, // Optional field
         symptomSeverity: body.symptomSeverity
           ? Number(body.symptomSeverity)
-          : null,
+          : null, // Optional field
         createdAt: logDate,
       },
     });
@@ -301,17 +303,13 @@ const filterLogsHandler: RequestHandler = async (req, res, next) => {
 };
 
 // Update a log
-const updateLogHandler: RequestHandler = async (
-  req,
-  res,
-  next
-): Promise<void> => {
+const updateLogHandler: RequestHandler = async (req, res): Promise<void> => {
   try {
     const userId = (req as AuthRequest).userId;
     const logId = req.params.id;
-    const { createdAt, ...updates } = req.body;
+    const body = req.body;
 
-    // First, fetch the existing log
+    // First check if the log exists and belongs to the user
     const existingLog = await prisma.dailyLog.findFirst({
       where: {
         id: logId,
@@ -324,39 +322,88 @@ const updateLogHandler: RequestHandler = async (
       return;
     }
 
-    // Check if the log is from today
-    const today = new Date();
-    const logDate = new Date(existingLog.createdAt);
-
-    if (!isSameDay(today, logDate)) {
-      res.status(403).json({
-        error: "Logs can only be edited on the day they were created",
-      });
+    // Validate the request body
+    if (!body || typeof body !== "object") {
+      const error = {
+        message: "Invalid request body",
+        received: body,
+        type: typeof body,
+      };
+      res.status(400).json({ error });
       return;
     }
 
-    const safeUpdates = {
-      ...updates,
-      moodLevel: Number(updates.moodLevel),
-      anxietyLevel: Number(updates.anxietyLevel),
-      sleepHours: Number(updates.sleepHours),
-      sleepQuality: Number(updates.sleepQuality),
-      stressLevel: Number(updates.stressLevel),
-      symptomSeverity: updates.symptomSeverity
-        ? Number(updates.symptomSeverity)
-        : null,
-    };
+    // Validate required fields
+    const requiredFields = [
+      "moodLevel",
+      "anxietyLevel",
+      "sleepHours",
+      "sleepQuality",
+      "physicalActivity",
+      "stressLevel",
+    ];
+
+    const missingFields = requiredFields.filter((field) => !(field in body));
+    if (missingFields.length > 0) {
+      const error = {
+        message: "Missing required fields",
+        missingFields,
+        receivedFields: Object.keys(body),
+      };
+      res.status(400).json({ error });
+      return;
+    }
+
+    // Only validate symptom severity if symptoms exist
+    if (body.symptoms && body.symptomSeverity !== undefined) {
+      const severity = Number(body.symptomSeverity);
+      if (isNaN(severity) || severity < 1 || severity > 5) {
+        res
+          .status(400)
+          .json({ error: "Symptom severity must be between 1 and 5" });
+        return;
+      }
+    }
 
     const updatedLog = await prisma.dailyLog.update({
       where: {
         id: logId,
+        userId,
       },
-      data: safeUpdates,
+      data: {
+        moodLevel: Number(body.moodLevel),
+        anxietyLevel: Number(body.anxietyLevel),
+        sleepHours: Number(body.sleepHours),
+        sleepQuality: Number(body.sleepQuality),
+        physicalActivity: String(body.physicalActivity),
+        socialInteractions: String(body.socialInteractions),
+        stressLevel: Number(body.stressLevel),
+        symptoms: body.symptoms || "",
+        primarySymptom: body.primarySymptom || "",
+        symptomSeverity:
+          body.symptomSeverity !== undefined
+            ? Number(body.symptomSeverity)
+            : null,
+      },
     });
 
     res.json(updatedLog);
-  } catch (error) {
-    next(error);
+  } catch (error: unknown) {
+    const err = error as Error;
+
+    // Check if it's a Prisma error
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      if (err.code === "P2025") {
+        res.status(404).json({ error: "Log not found" });
+        return;
+      }
+    }
+
+    console.error("Update log error:", {
+      message: err.message,
+      stack: err.stack,
+    });
+    res.status(500).json({ error: err.message || "Server error" });
   }
 };
 
@@ -652,7 +699,7 @@ const getSymptomAnalysisHandler: RequestHandler = async (
 // Apply middleware and handlers
 router.use(authenticateToken);
 
-router.post("/", validateLog, validateLogHandler, createLogHandler);
+router.post("/", createLogHandler);
 router.get("/", getLogsHandler);
 router.get("/filter", validatePeriod, validatePeriodHandler, filterLogsHandler);
 router.put("/:id", validateLog, validateLogHandler, updateLogHandler);

@@ -1,20 +1,29 @@
-import { Router, Request, Response, NextFunction, RequestHandler } from 'express';
-import bcrypt from 'bcrypt';
-import { generateToken } from '../utils/auth';
-import prisma from '../lib/prisma';
-import { authLimiter } from '../middleware/rateLimiter';
-import { validatePassword } from '../middleware/validatePassword';
-import { body, validationResult } from 'express-validator';
-import { authenticateToken } from '../middleware/authMiddleware';
-import { AuthRequest } from '../types/express';
+import {
+  Router,
+  Request,
+  Response,
+  NextFunction,
+  RequestHandler,
+} from "express";
+import bcrypt from "bcrypt";
+import { generateToken } from "../utils/auth";
+import prisma from "../lib/prisma";
+import { authLimiter } from "../middleware/rateLimiter";
+import { validatePassword } from "../middleware/validatePassword";
+import { body, validationResult } from "express-validator";
+import { authenticateToken } from "../middleware/authMiddleware";
+import { AuthRequest } from "../types/express";
+import jwt from "jsonwebtoken";
 
 const router = Router();
 
 // Add validation middleware
 const validateRegistration = [
-  body('email').isEmail().withMessage('Invalid email format'),
-  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
-  body('name').notEmpty().withMessage('Name is required'),
+  body("email").isEmail().withMessage("Invalid email format"),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters"),
+  body("name").notEmpty().withMessage("Name is required"),
 ];
 
 const validateRegistrationHandler: RequestHandler = (req, res, next) => {
@@ -26,19 +35,15 @@ const validateRegistrationHandler: RequestHandler = (req, res, next) => {
   next();
 };
 
-const registerHandler: RequestHandler = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+const registerHandler: RequestHandler = async (req, res, next) => {
   try {
     const { email, password, name } = req.body;
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (existingUser) {
-      res.status(400).json({ error: 'Email already registered' });
+      res.status(400).json({ error: "Email already registered" });
       return;
     }
 
@@ -47,21 +52,19 @@ const registerHandler: RequestHandler = async (
       data: {
         email,
         password: hashedPassword,
-        name
-      }
+        name,
+      },
     });
 
-    const token = generateToken(user.id);
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
     res.status(201).json({
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name
-      }
+      userId: user.id,
+      email: user.email,
+      name: user.name,
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error("Registration error:", error);
     next(error);
   }
 };
@@ -70,39 +73,31 @@ const loginHandler: RequestHandler = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
 
-    if (!user) {
-      res.status(401).json({ error: 'Invalid credentials' });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      res.status(401).json({ error: "Invalid credentials" });
       return;
     }
 
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      res.status(401).json({ error: 'Invalid credentials' });
-      return;
-    }
-
-    const token = generateToken(user.id);
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
     res.json({
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name
-      }
+      userId: user.id,
+      email: user.email,
+      name: user.name,
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Login failed" });
   }
 };
 
 const getMeHandler: RequestHandler = async (req, res) => {
   try {
     const userId = (req as unknown as AuthRequest).userId;
-    
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -113,19 +108,24 @@ const getMeHandler: RequestHandler = async (req, res) => {
     });
 
     if (!user) {
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: "User not found" });
       return;
     }
 
     res.json(user);
   } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-router.post('/register', validateRegistration, validateRegistrationHandler, registerHandler);
-router.post('/login', authLimiter, loginHandler);
-router.get('/me', authenticateToken, getMeHandler);
+router.post(
+  "/register",
+  validateRegistration,
+  validateRegistrationHandler,
+  registerHandler
+);
+router.post("/login", authLimiter, loginHandler);
+router.get("/me", authenticateToken, getMeHandler);
 
-export default router; 
+export default router;
