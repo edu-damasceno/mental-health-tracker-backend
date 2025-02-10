@@ -1,8 +1,6 @@
 import { Router, RequestHandler } from "express";
 import { authenticateToken, AuthRequest } from "../middleware/authMiddleware";
 import prisma from "../lib/prisma";
-import { wss } from "../server";
-import WebSocket from "ws";
 import { body, query, validationResult } from "express-validator";
 import { Prisma } from "@prisma/client";
 
@@ -185,18 +183,6 @@ const createLogHandler: RequestHandler = async (
         symptomSeverity: body.symptomSeverity || null,
         createdAt: logDate,
       },
-    });
-
-    // Broadcast the new log to all connected clients
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(
-          JSON.stringify({
-            type: "NEW_LOG",
-            data: log,
-          })
-        );
-      }
     });
 
     res.status(201).json(log);
@@ -392,18 +378,6 @@ const deleteLogHandler: RequestHandler = async (
 
     await prisma.dailyLog.delete({
       where: { id: logId },
-    });
-
-    // Broadcast the deletion
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(
-          JSON.stringify({
-            type: "DELETE_LOG",
-            data: { id: logId },
-          })
-        );
-      }
     });
 
     res.status(204).send();

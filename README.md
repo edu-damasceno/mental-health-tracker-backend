@@ -7,7 +7,6 @@ A robust REST API built with Express and TypeScript for tracking daily mental he
 - 📊 Daily mood and wellness logging
 - 🔍 Time-based filtering and analytics
 - 🔒 User authentication and data privacy
-- 🔄 Real-time updates via WebSocket
 - ✅ Data validation and sanitization
 - 🎯 Duplicate entry prevention
 
@@ -35,8 +34,7 @@ A robust REST API built with Express and TypeScript for tracking daily mental he
 - Node.js & Express
 - TypeScript
 - Prisma ORM
-- PostgreSQL
-- WebSocket
+- SQLite
 - JWT Authentication
 - Express Validator
 
@@ -62,7 +60,7 @@ A robust REST API built with Express and TypeScript for tracking daily mental he
 Create a `.env` file with:
 
 ```env
-DATABASE_URL="postgresql://user:password@localhost:5432/mental_health_db"
+DATABASE_URL="file:./dev.db"
 JWT_SECRET="your-jwt-secret"
 PORT=8080
 ```

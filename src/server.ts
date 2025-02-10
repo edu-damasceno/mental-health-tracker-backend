@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import WebSocket from "ws";
 import { config } from "./config/env";
 import authRoutes from "./routes/auth";
 import logsRoutes from "./routes/logs";
@@ -30,7 +29,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/logs", logsRoutes);
 
 export const server = http.createServer(app);
-export const wss = new WebSocket.Server({ server });
 
 export const start = () => {
   return new Promise((resolve) => {
@@ -50,9 +48,7 @@ export const start = () => {
 export const close = async () => {
   return new Promise((resolve) => {
     server?.close(() => {
-      wss?.close(() => {
-        resolve(true);
-      });
+      resolve(true);
     });
   });
 };
