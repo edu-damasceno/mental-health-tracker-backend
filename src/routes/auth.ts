@@ -14,8 +14,11 @@ import { body, validationResult } from "express-validator";
 import { authenticateToken } from "../middleware/authMiddleware";
 import { AuthRequest } from "../types/express";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
+import { config } from "../config/env";
 
 const router = Router();
+const client = new OAuth2Client(config.GOOGLE_CLIENT_ID);
 
 // Add validation middleware
 const validateRegistration = [
@@ -69,28 +72,47 @@ const registerHandler: RequestHandler = async (req, res, next) => {
   }
 };
 
-const loginHandler: RequestHandler = async (req, res) => {
+const loginHandler: RequestHandler = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    // Check if user exists
+    if (!user) {
       res.status(401).json({ error: "Invalid credentials" });
       return;
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
+    // Check if user has a password (might be Google user)
+    if (!user.password) {
+      res.status(401).json({
+        error: "Please login with Google for this account",
+      });
+      return;
+    }
+
+    const validPassword = await bcrypt.compare(password, user.password);
+
+    if (!validPassword) {
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
+    }
+
+    const token = generateToken(user.id);
     res.json({
       token,
-      userId: user.id,
-      email: user.email,
-      name: user.name,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Login failed" });
+    next(error);
   }
 };
 
@@ -127,5 +149,54 @@ router.post(
 );
 router.post("/login", authLimiter, loginHandler);
 router.get("/me", authenticateToken, getMeHandler);
+
+interface GooglePayload {
+  email?: string;
+  name?: string;
+  sub?: string;
+}
+
+router.post("/google", async (req, res, next) => {
+  try {
+    const { googleUser } = req.body;
+
+    if (!googleUser?.email) {
+      res.status(400).json({ error: "Invalid Google user data" });
+      return;
+    }
+
+    const { email, name, googleId } = googleUser;
+
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { googleId }],
+      },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: name || email.split("@")[0],
+          googleId,
+        },
+      });
+    }
+
+    const jwtToken = generateToken(user.id);
+
+    res.json({
+      token: jwtToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (error) {
+    console.error("Google auth error:", error);
+    next(error);
+  }
+});
 
 export default router;

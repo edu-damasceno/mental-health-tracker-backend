@@ -8,12 +8,14 @@ datasource db {
 }
 
 model User {
-  id        String     @id @default(uuid())
+  id        String     @id @default(cuid())
   email     String     @unique
-  password  String
-  name      String?
+  name      String
+  password  String?
+  googleId  String?    @unique
   createdAt DateTime   @default(now())
-  dailyLogs DailyLog[]
+  updatedAt DateTime   @updatedAt
+  logs      DailyLog[]
 }
 
 model DailyLog {

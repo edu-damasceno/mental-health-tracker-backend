@@ -105,9 +105,6 @@ async function main() {
         updatedAt: new Date(date.valueOf()),
       },
     });
-
-    // Log the created date for debugging
-    console.log(`Created log for date: ${format(date, "yyyy-MM-dd")}`);
   }
 }
 

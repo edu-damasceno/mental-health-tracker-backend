@@ -28,6 +28,11 @@ export const authLimiter = rateLimit({
 app.use("/api/auth", authRoutes);
 app.use("/api/logs", logsRoutes);
 
+// Health check route
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 export const server = http.createServer(app);
 
 export const start = () => {

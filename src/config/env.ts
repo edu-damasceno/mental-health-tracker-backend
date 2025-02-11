@@ -18,6 +18,7 @@ export const config = {
   // Authentication
   JWT_SECRET: process.env.JWT_SECRET || "development-secret",
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "24h",
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
 
   // Security
   RATE_LIMIT: {

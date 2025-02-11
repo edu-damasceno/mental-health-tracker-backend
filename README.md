@@ -9,6 +9,7 @@ A robust REST API built with Express and TypeScript for tracking daily mental he
 - 🔒 User authentication and data privacy
 - ✅ Data validation and sanitization
 - 🎯 Duplicate entry prevention
+- 🔄 Google OAuth integration
 
 ## API Endpoints
 
@@ -63,6 +64,8 @@ Create a `.env` file with:
 DATABASE_URL="file:./dev.db"
 JWT_SECRET="your-jwt-secret"
 PORT=8080
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
 
 ## Daily Log Fields
@@ -85,6 +88,19 @@ PORT=8080
 ### Sleep Hours
 
 - **sleepHours**: Number between 0-24, in 0.5 increments
+
+## Authentication
+
+The API supports two authentication methods:
+
+1. Traditional email/password login
+2. Google OAuth 2.0 login
+
+### Google OAuth Flow
+
+- POST `/api/auth/google` - Authenticate with Google credentials
+- Requires `googleUser` object with `email`, `name`, and `googleId`
+- Returns JWT token and user data
 
 ## License
 
