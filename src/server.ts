@@ -9,6 +9,9 @@ import http from "http";
 
 export const app = express();
 
+// Trust proxy for rate limiting behind Render.com proxy
+app.set("trust proxy", 1);
+
 app.use(
   cors({
     origin: config.ALLOWED_ORIGINS,
