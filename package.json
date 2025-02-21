@@ -4,7 +4,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "lint": "eslint . --ext .ts",
-    "prisma:seed": "ts-node prisma/seed.ts"
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "postinstall": "prisma generate && prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^6.3.1",

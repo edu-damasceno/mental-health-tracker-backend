@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/utils/auth";
 import { addDays, subDays, format } from "date-fns";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
@@ -45,66 +46,76 @@ const symptoms = [
 ];
 
 async function main() {
-  // Clean up existing data
-  await prisma.dailyLog.deleteMany();
-  await prisma.user.deleteMany();
+  try {
+    // Clean up existing data if tables exist
+    try {
+      await prisma.dailyLog.deleteMany();
+      await prisma.user.deleteMany();
+    } catch (error) {
+      console.log("Tables don't exist yet, continuing with seeding...");
+    }
 
-  const password = "Password123";
-  const hashedPassword = await hashPassword(password);
-
-  // Create test user
-  const testUser = await prisma.user.upsert({
-    where: { email: "test@example.com" },
-    update: {},
-    create: {
-      email: "test@example.com",
-      password: hashedPassword,
-      name: "Test User",
-    },
-  });
-
-  // Generate 30 days of logs with trending data
-  const today = new Date();
-  let baseMood = 3;
-  let baseAnxiety = 3;
-
-  for (let i = 0; i < 30; i++) {
-    const date = subDays(today, 29 - i); // Start from 30 days ago
-
-    // Generate trending values
-    baseMood = generateDailyTrend(baseMood, 1.5);
-    baseAnxiety = generateDailyTrend(baseAnxiety, 1.5);
-
-    // Random activity and social interaction
-    const activity = activities[Math.floor(Math.random() * activities.length)];
-    const social =
-      socialInteractions[Math.floor(Math.random() * socialInteractions.length)];
-    const symptom = symptoms[Math.floor(Math.random() * symptoms.length)];
-
-    await prisma.dailyLog.create({
+    // Create test user
+    const hashedPassword = await bcrypt.hash("Password123", 10);
+    const user = await prisma.user.create({
       data: {
-        userId: testUser.id,
-        moodLevel: baseMood,
-        anxietyLevel: baseAnxiety,
-        sleepHours: generateRandomValue(5, 9),
-        sleepQuality: generateRandomValue(1, 5),
-        physicalActivity: activity,
-        socialInteractions: social,
-        stressLevel: generateRandomValue(1, 5),
-        symptoms: symptom,
-        primarySymptom: symptom ? symptom.split(" ")[0] : "",
-        symptomSeverity: symptom ? generateRandomValue(1, 5) : null,
-        createdAt: new Date(
-          date.setHours(
-            generateRandomValue(8, 20),
-            generateRandomValue(0, 59),
-            0,
-            0
-          )
-        ),
-        updatedAt: new Date(date.valueOf()),
+        email: "test@example.com",
+        password: hashedPassword,
+        name: "Test User",
       },
     });
+
+    // Generate 30 days of logs with trending data
+    const today = new Date();
+    let baseMood = 3;
+    let baseAnxiety = 3;
+
+    for (let i = 0; i < 30; i++) {
+      const date = subDays(today, 29 - i); // Start from 30 days ago
+
+      // Generate trending values
+      baseMood = generateDailyTrend(baseMood, 1.5);
+      baseAnxiety = generateDailyTrend(baseAnxiety, 1.5);
+
+      // Random activity and social interaction
+      const activity =
+        activities[Math.floor(Math.random() * activities.length)];
+      const social =
+        socialInteractions[
+          Math.floor(Math.random() * socialInteractions.length)
+        ];
+      const symptom = symptoms[Math.floor(Math.random() * symptoms.length)];
+
+      await prisma.dailyLog.create({
+        data: {
+          userId: user.id,
+          moodLevel: baseMood,
+          anxietyLevel: baseAnxiety,
+          sleepHours: generateRandomValue(5, 9),
+          sleepQuality: generateRandomValue(1, 5),
+          physicalActivity: activity,
+          socialInteractions: social,
+          stressLevel: generateRandomValue(1, 5),
+          symptoms: symptom,
+          primarySymptom: symptom ? symptom.split(" ")[0] : "",
+          symptomSeverity: symptom ? generateRandomValue(1, 5) : null,
+          createdAt: new Date(
+            date.setHours(
+              generateRandomValue(8, 20),
+              generateRandomValue(0, 59),
+              0,
+              0
+            )
+          ),
+          updatedAt: new Date(date.valueOf()),
+        },
+      });
+    }
+
+    console.log("Seeding completed!");
+  } catch (error) {
+    console.error("Error seeding database:", error);
+    process.exit(1);
   }
 }
 
